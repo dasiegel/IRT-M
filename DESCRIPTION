@@ -1,0 +1,47 @@
+Package: IRTM
+Title: Theory driven Item Response Theory (IRT) models
+Version: 0.0.0.9000
+Authors@R: 
+    c(person(given = "Marco",
+           family = "Morucci",
+           role = c("aut", "cre"),
+           email = "marco.morucci@nyu.edu",
+           comment = c(ORCID = "")),
+    person(given = "Margaret",
+           family = "Foster",
+           role = "aut",
+           comment = c(ORCID = "0000-0002-6418-8394")),
+    person(given = "David",
+           family = "Siegel",
+           role = "aut",
+            comment = c(ORCID = "0000-0003-1619-6119")))
+Description: IRT-M is a semi-supervised approach based on Bayesian Item Response Theory
+	     that produces theoretically identified underlying dimensions from input data and a constrai	     nts matrix. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Depends: 
+    truncnorm,
+    tmvtnorm,
+    utils,
+    Rcpp,
+    RcppArmadillo,
+    RcppProgress,
+    RcppDist,
+    R (>= 2.10)
+Suggests: 
+    rmarkdown,
+    knitr,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+LazyData: true
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo,
+    RcppDist,
+    RcppProgress
+Imports: 
+    Rcpp,
+    RcppArmadillo
+Config/testthat/edition: 3

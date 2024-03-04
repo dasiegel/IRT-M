@@ -23,13 +23,16 @@ library(tidyverse)
 library(stats)
 ```
 
-In this document we narratively walk through use of the IRT-M package.  Although the IRT-M framework is case agnostic, here we focus on a single use case in which a hypothetical research team is interested in seeking empirical support for the hypothesis that anti-immigration attitudes in Europe are associated with perceptions of cultural, economic, and security threats. This example illustrates one of the strengths of the IRT-M model; namely the (very common) situation in which researchers have a theoretical question and related data that does not directly address the substantive question of interest. In this case, we work through a research question derived from the literature on European attitudes towards immigration. The threat response hypothesis is supported by the literature~\cite{kentmen2017anti} but  was not a specific focus of the 2020-2021 Eurobarometer wave. Consequentially, the survey did not directly as questions about the three threat dimensions of interest.  However, the survey contained several questions adjacent to threat perception.  We can use these questions to build an M-Matrix and estimate latent threat dimensions.
+In this document we narratively walk through use of the IRT-M package.  Although the IRT-M framework is case agnostic, here we focus on a single use case in which a hypothetical research team is interested in seeking empirical support for the hypothesis that anti-immigration attitudes in Europe are associated with perceptions of cultural, economic, and security threats. This example illustrates one of the strengths of the IRT-M model; namely the (very common) situation in which researchers have a theoretical question and related data that does not directly address the substantive question of interest. In this case, we work through a research question derived from the literature on European attitudes towards immigration. The threat response hypothesis is supported by the literature~\cite{kentmen2017anti} but  was not a specific focus of the 2020-2021 Eurobarometer wave. Consequentially, the survey did not directly ask questions about the three threat dimensions of interest.  However, the survey contained several questions adjacent to threat perception.  We can use these questions to build an M-Matrix and estimate latent threat dimensions.
 
 Regardless of the use case, there are three steps to  preparing data for the IRT-M Package:
 
 + First, create a key for how you expect your theory to interact with the data. 
 + Next, format the data so that it can be parsed by the sampler. 
 + Third, create anchor points for the resulting scale.
+
+## Loading the package
+Gfortran will be a necessary component in loading the package. Gfortran can be readily downloaded and the version installed can be checked: On Windows, enter into the command line "$ gfortran --version GNU Fortran." On Mac, enter into the terminal "which gfortran." After gfortran has been successfully installed, it is important to also have GCC (GNU Compiler Collection) installed. 
 
 ## Formatting the Observed Data
 

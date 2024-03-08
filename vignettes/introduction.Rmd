@@ -23,7 +23,7 @@ library(tidyverse)
 library(stats)
 ```
 
-In this document we narratively walk through use of the IRT-M package.  Although the IRT-M framework is case agnostic, here we focus on a single use case in which a hypothetical research team is interested in seeking empirical support for the hypothesis that anti-immigration attitudes in Europe are associated with perceptions of cultural, economic, and security threats. This example illustrates one of the strengths of the IRT-M model; namely the (very common) situation in which researchers have a theoretical question and related data that does not directly address the substantive question of interest. In this case, we work through a research question derived from the literature on European attitudes towards immigration. The threat response hypothesis is supported by the literature~\cite{kentmen2017anti} but  was not a specific focus of the 2020-2021 Eurobarometer wave. Consequentially, the survey did not directly ask questions about the three threat dimensions of interest.  However, the survey contained several questions adjacent to threat perception.  We can use these questions to build an M-Matrix and estimate latent threat dimensions.
+In this document we narratively walk through use of the IRT-M package.  Although the IRT-M framework is case agnostic, this vignette focuses on a single use case in which a hypothetical research team is interested in seeking empirical support for the hypothesis that anti-immigration attitudes in Europe are associated with perceptions of cultural, economic, and security threats. This example illustrates one of the strengths of the IRT-M model; namely the (very common) situation in which researchers have a theoretical question and related data that does not directly address the substantive question of interest. In this case, we work through a research question derived from the literature on European attitudes towards immigration. The threat response hypothesis is supported by the literature~\cite{kentmen2017anti} but  was not a specific focus of the 2020-2021 Eurobarometer wave. Consequentially, the survey did not directly ask questions about the three threat dimensions of interest.  However, the survey contained several questions adjacent to threat perception.  We can use these questions to build an M-Matrix and estimate latent threat dimensions.
 
 Regardless of the use case, there are three steps to  preparing data for the IRT-M Package:
 
@@ -42,9 +42,9 @@ IRT-M requires converting categorical variables into a numeric format with one r
 
 ## Creating the M-Matrix
 
-The core step  in using the IRT-M package is to map the underlying theoretical constructions of interest into an 'M-Matrix' of dimension loadings. In order to develop the loadings, we go through every question on the "test" object (here: every question in the survey) and decide whether the question relates to one of our hypothesized theoretical dimensions. For those questions that we believe load on the theoretical dimension of interest, we can code whether we expect it to positively load---meaning that an affirmative response implies more of the dimension--- or negatively load. We code positive "loading" as $1$ in the M-Matrix, negative "loading" as $-1$. We can also denote that the question has no relationship with the theoretical dimension of interest, in which case we code 0 into the dimension. If we are unsure, not coding the loading inserts $NA$ value, and the model will learn any loading during the estimation step.
+The core step in using the IRT-M package is to map the underlying theoretical constructions of interest into an 'M-Matrix' of dimension loadings. In order to develop the loadings, we go through every question on the "test" object (here: every question in the survey) and decide whether the question relates to one of our hypothesized theoretical dimensions. For those questions that we believe load on the theoretical dimension of interest, we can code whether we expect it to positively load---meaning that an affirmative response implies more of the dimension--- or negatively load. We code positive "loading" as $1$ in the M-Matrix, negative "loading" as $-1$. We can also denote that the question has no relationship with the theoretical dimension of interest, in which case we code 0 into the dimension. If we are unsure, not coding the loading inserts $NA$ value, and the model will learn any loading during the estimation step.
 
-To begin, we reformat data so that each possible answer becomes a separate binary question (One Hot encoding). In preparing the data, we used the `dummy_cols()` utility from the `fastdummies` package.  Finally, we rename the new binary dataframe as `Y` to underscore that this is the observed data that we will be modeling  
+To begin, we reformat data so that each possible answer becomes a separate binary question (One Hot encoding). In preparing the data, we used the `dummy_cols()` utility from the `fastdummies` package.  Finally, we rename the new binary dataframe as `Y` to underscore that this is the observed data that we will be modeling. Please ensure that the `dataPath` variable is adjusted for your local file structure.
 
 ```{r, eval=F, echo=T}
 dataPath <- "./Data/"
@@ -92,10 +92,11 @@ MCodes <- MCodes[which(MCodes$encoding > 0),]
 
 ## Processing with IRT-M
 
-Once we have the data and M-Matrix identified (and have cleaned column names for consistency between M-Matrix and response data), we combine the data and M Matrix. We merge and the data and loadings, resulting in a `K x R` matrix where `K` is the number of binary questions that we have codes for and R are the number of instrument responses.  This is accomplished by the following code snippet:
+Once we have the data and M-Matrix identified (and have cleaned column names for consistency between M-Matrix and response data), we combine the data and created M Matrix. We merge and the data and loadings, resulting in a `K x R` matrix where `K` is the number of binary questions that we have codes for and R are the number of instrument responses.  This is accomplished by the following code snippet:
 
 ```{r, eval=F, echo=T}
 ## Produce a K-coded questions x R-responses data frame:
+# Combining the M-Matrix with the observed data for IRT-M modeling
 combine <- MCodes[,c(2, 4:9)] %>% ## question codes and loadings 
     inner_join(
         Y %>% 
@@ -109,19 +110,19 @@ combine <- MCodes[,c(2, 4:9)] %>% ## question codes and loadings
 
 Observe that until this point, the code assumes that the data is in the form of a series of matricies where values are coded with a 0 or a 1. However, binary and categorical data is only a subset of the data that one might be interested in coding.  The most straightforward way to use the `IRT-M` model for continuous data is to convert the data into binary by implementing thresholds above/below which the data is assigned to a 1 or 0.
 
-Next we create the `M-Matrix` by instantiating a `K x d x d` array of matrices. As above, `K` is the number of coded loading questions, and `d` is the number of coded dimensions. 
+Next we create the `M-Matrix` by instantiating a `K x d x d` array of matrices. As above, `K` is the number of coded loading questions (number of theoretically-salient binary questions to be hand coded), and `d` is the number of coded dimensions (dimensions in the IRT-M model). 
 
 Finally, we rebuild the outcome data by ensuring that we have coded (or NA) M matricies for each question that remains in our data. At the end, we have two data structures for our analysis: the `M-Matrix` which is a list of diagonal matrices of dimension `d x d x K` coding loadings. The second object is a dataframe, `Y`, that has dimension `R` responses x `K` questions with coded (and `NA`) loadings.
 These are the objects that `IRT-M` will use for the estimation
 
 The M-Code data structure becomes our model’s “M-Matrix” (M) object. 
-The conversion produces a `dxd` matrix for each question that is 0 everywhere except for the diagonal, which is a 1 if that question loads on the dimension.
+The conversion produces a `dxd` matrix for each question that is 0 everywhere except for the diagonal, which is a 1 if that question loads on the dimension. If uncertain about the loading, use NA in the M-Code matrix, and the model will learn any loading during the estimation step.
 
 
 ```{r, eval=F, echo=T}
 d <- 6 #number of coded dimensions
 loadings <- 2:7 ## columns in combine object with the loadings
-
+# Creating a 3D array for M-Matrix where each matrix corresponds to a coded loading question
 M <- array(NA, c(d, d, nrow(combine)))
 for (i in 1:nrow(combine)) {
     M[,,i] <- diag(combine[i,
@@ -129,7 +130,8 @@ for (i in 1:nrow(combine)) {
 }
 ```
 
-We also create the final `Y` object for the IRTM estimator to use. Namely, we reverse the transposition of the `Y` dataframe and ensure that we have question names that are consistently formatted for the constraint matricies and the observed data. Finally, we save the `Y` and `M` object. Troubleshooting note: it is important that the `Y` object is numeric. You can check the data types by running Dplyr’s `summary(response_object)` [or similar] and adjust the data type if needed.
+We also create the final `Y` object for the IRTM estimator to use. Namely, we reverse the transposition of the `Y` dataframe and ensure that we have question names that are consistently formatted for the constraint matricies and the observed data. Finally, we save the `Y` and `M` object. Troubleshooting note: it is important that the `Y` object is numeric. You can check the data types by running Dplyr’s `summary(response_object)` [or similar] and adjust the data type if needed. Reverse the transposition of the observations and ensure Y is numeric.
+
 ```{r, eval=F, echo=T}
 #Reverse the earlier transposition of the observations:
 Y <- combine[, (d+2):ncol(combine)]%>%

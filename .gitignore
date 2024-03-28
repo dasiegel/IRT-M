@@ -6,6 +6,7 @@ Meta
 # Session Data files
 .RData
 .DS_Store
+*.*~
 
 # User-specific files
 .Ruserdata

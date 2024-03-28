@@ -409,7 +409,7 @@ t_five <- as.data.frame(cbind(question= as.character(MCodes$QMap),
 ```
 
 Once we have this data, we can model the questions and lambda loadings to check for internal validity of the model. 
-For example, in the data that we have been working with, we discover that the largest `lambda` loadings are on `qb7_2_2` (Against: Stronger EU border control)  and `qb7_1_1` (For: A common EU asylum system). This can reassure us that coding and sampler are loading on meaningful questions for the hypothesized dimensions.
+For example, in the data that we have been working with, we discover that the largest `lambda` loadings are on `qb7_2_2` (Against : Stronger EU border control)  and `qb7_1_1` (For: A common EU asylum system). This can reassure us that coding and sampler are loading on meaningful questions for the hypothesized dimensions.
 
 We can repeat this analysis for additional dimensions to gain insight into the questions that contribute the most to the estimation of the dimension. For example, doing so for our `\Theta_{1}` ("culture threat"), we can learn that the question which loads most heavily is `qa6b_9_2` ("Do not trust national parliament").
 

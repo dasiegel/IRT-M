@@ -438,47 +438,49 @@ The `Lambda` object is an array where the first dimension is the number of one-h
 
 We can unpack this object for each underlying dimension. 
 
-First, we subset the `lambda` object. In this example, we are interested in `\Theta_{5}`, which we coded as questions that we believed related to support for immigration. The first row of code pulls out the fifth dimension from the array, producing an dataframe with the sampler's distribution for for each coded question in the test instrument.  In order to analyze the lambda loadings, we need to summarize the per-question samples (via the `rowwise()` call). We do that here via the mean and variance, although the summary is customizable.  After summarizing the per-question sample distribution, we keep only the columns with the `mean` and `variance`.
 
-```{r, eval=F, echo=T}
-theta_id <-  5 ## support immigration
+First, we subset the `lambda` object. In this example, we are interested in `\Theta_{1}`, which we coded as questions that we believed related to a feeling of abstract cultural threat. The first row of code pulls out the fifth dimension from the array, producing an dataframe with the sampler's distribution for for each coded question in the test instrument.  In order to analyze the lambda loadings, we need to summarize the per-question samples (via the `rowwise()` call). We do that here via the mean and variance, although the summary is customizable.  After summarizing the per-question sample distribution, we keep only the columns with the `mean` and `variance`.
+
+```{r, eval=F, echo=T, message=F, warning = FALSE}
+
+theta_id <-  1 ## culture threat
 lambda_weight <- as.data.frame(irt$lambda[,theta_id,]) %>%
    rowwise() %>%
    mutate(mean = mean(c_across(starts_with("V")), na.rm = TRUE),
-          var = variance(c_across(starts_with("V")), na.rm = TRUE)) %>%
+          var = var(c_across(starts_with("V")), na.rm = TRUE)) %>%
   select(mean, var) %>%
   ungroup() 
+
 ```
 
-The result is a dataframe with the mean and variance of the `lambda` distribution of the selected underlying dimension identified for each of our one-hot encoded questions. At this point, it is convenient to go to the `M-Code` data file so that we can attach the human-readable question names. To do this, we read in the `.csv` file where we did the original coding. As when we prepared the data, we keep only those rows that have a loading coded:
-
-```{r, eval=F, echo=T}
-MCodes <- read_csv(paste0(dataPath,
-                          "Immigration_EB_MCodes.csv"))
-
-## Only keep M-Codes with loadings or outcomes:
-MCodes$encoding <- rowSums(abs(MCodes[,4:9])) 
-MCodes <- MCodes[which(MCodes$encoding > 0),]
-```
+The result is a dataframe with the mean and variance of the `lambda` distribution of the selected underlying dimension identified for each of our one-hot encoded questions. At this point, it is convenient to go to the data object that lists the question names for our items, so that we can attach the human-readable information. Above, we called the object `question`, and it is a `M x 1` vector with the question names that went into the sampler.
 
 Before extracting metadata with question names, it is also worthwhile to make sure that the length of the data object with the question metadata matches the length of the lambda summary object:
 
-```{r, eval=F, echo=T}
+```{r, eval=F, echo=T, message=F, warning = FALSE}
 ## Verify that the data objects have the same length:
-dim(MCodes)[1] == dim(lambda_weight)[1]
+dim(question)[1] == dim(lambda_weight)[1]
 ```
 
-In this case, we coded the `MCodes` object with a column that provides the question number and another that provides substantive notes on what the question was asking. We can extract those columns and attach them to the `lambda` summary:
+In this case, we also coded the `MCodes` object with a column that provides substantive notes on what the question was asking. We can extract those columns and attach them to the `lambda` summary:
 
-```{r, eval=F, echo=T}
-t_five <- as.data.frame(cbind(question= as.character(MCodes$QMap), 
-                             substantive = as.character(MCodes$SubstantiveNotes),
+```{r, eval=F, echo=T, message=F, warning = FALSE}
+
+q2 <- question %>%
+  left_join(MCodes[,c("QMap", "SubstantiveNotes")], 
+            by = "QMap",
+            multiple = "all")
+
+t_spotlight <- as.data.frame(cbind(question= as.character(q2$QMap), 
+                             substantive = as.character(q2$SubstantiveNotes),
                               mean= round(as.numeric(lambda_weight$mean),3),
                               variance= round(as.numeric(lambda_weight$variance),3),
                               theta= theta_id)) %>%
   arrange(desc(mean))
-```
 
+print(head(t_spotlight))
+rm(q2)
+```
 Once we have this data, we can model the questions and lambda loadings to check for internal validity of the model. 
 For example, in the data that we have been working with, we discover that the largest `lambda` loadings are on `qb7_2_2` (Against : Stronger EU border control)  and `qb7_1_1` (For: A common EU asylum system). This can reassure us that coding and sampler are loading on meaningful questions for the hypothesized dimensions.
 

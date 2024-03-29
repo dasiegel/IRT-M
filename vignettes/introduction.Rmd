@@ -59,12 +59,6 @@ The core step in using the IRT-M package is to map the underlying theoretical co
 To begin, we reformat data so that each possible answer becomes a separate binary question (One Hot encoding). In preparing the data, we used the `dummy_cols()` utility from the `fastdummies` package.  Finally, we rename the new binary dataframe as `Y` to underscore that this is the observed data that we will be modeling. Please ensure that the `dataPath` variable is adjusted for your local file structure.
 
 ```{r, eval=T, echo=T, message=F, warning = FALSE}
-library(tidyverse) # version: tidyverse_2.0.0 
-library(stats) # version: stats4
-library(fastDummies) # version: fastDummies_1.7.3
-library(ggplot2)  # version: ggplot2_3.4.4
-library(IRTM) #version 1.00
-
 datapath <- "../data/"
 
 load(file=paste0(datapath, 'ebdat.rda'))

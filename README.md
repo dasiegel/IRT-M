@@ -1,6 +1,10 @@
 # IRT-M R package
 
-The IRT-M R package is a package that allows users to estimate multiple, potentially correlated, latent dimensions with substantive meaning\(s\). This solves a long-running problem with Item Response Theory models, which allow for measurement of latent or abstract concepts by (1) identifying latent dimensions in data and (2) assigning data units to a position in the latent dimension\(s\). Classic IRT models produce latent dimensions by generating a model that best predicts the underlying data. Unfortunately, latent dimensions produced by IRT models do not intrinsically capture theoretical concepts. IRT models also place units along the dominant dimension\(s\) present in the data--- which may or may not be the dimension of interest.
+The IRT-M R package is a package that allows users to estimate multiple, potentially correlated, latent dimensions with substantive meaning\(s\). This solves a long-running problem with Item Response Theory models, which allow for measurement of latent or abstract concepts by (1) identifying latent dimensions in data and (2) assigning data units to a position in the latent dimension\(s\). 
+
+Classic IRT models produce latent dimensions by generating a model that best predicts the underlying data. Unfortunately, the dimensions produced by IRT models do not intrinsically capture theoretical concepts. Secondly, IRT models place units along the dominant dimension\(s\) present in the data--- which may or may not be the dimension of interest.
+
+IRT-M generates theoretically-meaningful latent dimensions via constraints matrix specified by users.
 
 ## Getting Started
 

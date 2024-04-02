@@ -4,7 +4,7 @@ The IRT-M R package is a package that allows users to estimate multiple, potenti
 
 IRT-M solves a long-running problem with Item Response Theory models: classic IRT models produce latent dimensions by generating a model that best predicts the underlying data and then places the data units on the discovered dimension. These dimensions do not intrinsically capture theoretical concepts and may or may not be the dimension of interest. Users of IRT models have to make post hoc interpretations of the resulting dimensions based on prior knowledge of the underlying units. 
 
-IRT-M prompts users to specify a constraints matrix, which structures the dimensions that the model returns. Creating the constraints matrix based on one’s theory does impose upfront costs. However, this is the step that produces measurements of positions on conceptually meaningful latent dimensions while eliminating the need for exogenous information to identify the model.   If the theory (1) captures some aspect of the process that generated the data and (2) the constraint matrix coding is applied consistently, the model will produce measures of relevant theoretical concepts that are constant in meaning across disparate data sources and across time and place. The constraint matrix can be omitted for a conventional IRT estimation of the data. 
+IRT-M prompts users to specify a constraints matrix, which structures the dimensions that the model returns. Creating the constraints matrix entails hand-codes each choice in the data according to its connection to the latent dimensions of interest (e.g., perception of threat from immigration; ideological position; degree to which peace treaty captures minority rights and security). This imposes upfront costs; however, it is the step that produces measurements of positions on conceptually meaningful latent dimensions while eliminating the need for exogenous information to identify the model. If the theory (1) captures some aspect of the process that generated the data and (2) the constraint matrix coding is applied consistently, the model will produce measures of relevant theoretical concepts that are constant in meaning across disparate data sources and across time and place. The constraint matrix can be omitted for a conventional IRT estimation of the data. 
 
 You can find additional motivating examples, developed applications, and a technical presentation of the IRT-M model in the [paper](https://arxiv.org/abs/2111.11979). 
 
@@ -36,8 +36,6 @@ The IRT-M model takes a set of data composed of an array of choices (e.g., answe
 
 The present iteration of IRT-M requires dichotomous choices, with any non-dichotomous choice needing to be reformatted into a series of dichotomous ones. 
 
-In the pre-analysis step, the analyst hand-codes each choice according to its connection to each latent dimension, recalling
-that latent dimensions capture specific theoretical concepts from one’s theory (e.g., perception of threat from immigration; ideological position; degree to which peace treaty captures minority rights and security).
 
 
 

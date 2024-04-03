@@ -37,7 +37,13 @@ The IRT-M model takes a set of data composed of an array of choices (e.g., answe
 
 Below we present some examples of IRT-M use cases. A full walkthrough can be found in the [vignette](https://github.com/dasiegel/IRT-M/blob/master/vignettes/introduction.Rmd).
 
-(1) Estimated a latent "Satisfaction with the status quo" dimension from 32 countries surveyed by Afrobarometer across three collection waves. Without IRT-M, this estimate would have to rely on one or a few questions. Moreover, because contextual interpretations of questions vary contextually by location and time, the 
+(1) Estimated a latent "Satisfaction with the status quo" dimension from 32 countries surveyed by Afrobarometer across three collection waves. 
+
+Without IRT-M, this is a difficult measure to produce for several reasons:
+- Respondent interpretations of survey questions vary contextually by location and time
+- The survey instrument changes across waves
+
+We address this source of incompatability by coding a separate constraints (M) matrix for each country-year. So long as our coding accurately captures spatial and temporal variation in how respondents respond 
 
 ![allThetasVisualized_UrbanRuralDivide](https://github.com/dasiegel/IRT-M/assets/10012916/65dffdf3-8a9a-4222-b897-53ead9a7e0d1)
 

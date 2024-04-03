@@ -39,11 +39,11 @@ Below we present some examples of IRT-M use cases. A full walkthrough can be fou
 
 (1) Estimated a latent "Satisfaction with the status quo" dimension from 32 countries surveyed by Afrobarometer across three collection waves. 
 
-Without IRT-M, this is a difficult measure to produce for several reasons:
+Without IRT-M, this is a difficult measure to produce for several reasons, including that:
 - Respondent interpretations of survey questions vary contextually by location and time
 - The survey instrument changes across waves
 
-We address this source of incompatability by coding a separate constraints (M) matrix for each country-year. So long as our coding accurately captures spatial and temporal variation in how respondents respond 
+We address this source of incompatability by coding a separate constraints (M) matrix for each country-year. So long as our coding accurately captures the contextual variation in how respondents interpret and respond to questions, our measure will be consisent. As well, interested parties can review and the matrix coding and either confirm our interpretation or estimate an alternative version that reflects their own understanding.
 
 ![allThetasVisualized_UrbanRuralDivide](https://github.com/dasiegel/IRT-M/assets/10012916/65dffdf3-8a9a-4222-b897-53ead9a7e0d1)
 

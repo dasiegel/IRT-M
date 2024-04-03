@@ -1,6 +1,7 @@
 # IRT-M R package
 
 The IRT-M R package is a package that allows users to estimate multiple, potentially correlated, latent dimensions with substantive meaning\(s\) and place data units on the dimensions. It does so by having users specify a constraints matrix for the test items (e.g., agreement features, survey and test questions, votes, etc.) before estimating an IRT model on the data.
+The current version of the package works with binary data. Other data inputs, such as categorical survey questions or continuous measurements, must be reformatted into a binary format through one-hot encoding or another decision rule. 
 
 IRT-M solves a long-running problem with Item Response Theory models: classic IRT models produce latent dimensions by generating a model that best predicts the underlying data and then places the data units on the discovered dimension. These dimensions do not intrinsically capture theoretical concepts and may or may not be the dimension of interest. Users of IRT models have to make post hoc interpretations of the resulting dimensions based on prior knowledge of the underlying units. 
 
@@ -32,10 +33,7 @@ library(IRTM)
 
 ## Use and Examples
 
-The IRT-M model takes a set of data composed of an array of choices (e.g., answers to survey questions; votes on bills; elements of treaties) made by data units (e.g., survey respondents; legislators; peace treaties). 
-
-The present iteration of IRT-M requires dichotomous choices, with any non-dichotomous choice needing to be reformatted into a series of dichotomous ones. 
-
+The IRT-M model takes a set of data composed of an array of choices (e.g., answers to survey questions; votes on bills; elements of treaties, indicators from research organizations) made by data units (e.g., survey respondents; legislators; peace treaties). 
 
 
 

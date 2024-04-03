@@ -35,6 +35,11 @@ library(IRTM)
 
 The IRT-M model takes a set of data composed of an array of choices (e.g., answers to survey questions; votes on bills; elements of treaties, indicators from research organizations) made by data units (e.g., survey respondents; legislators; peace treaties). 
 
+Below we present some examples of IRT-M use cases. A full walkthrough can be found in the [vignette](https://github.com/dasiegel/IRT-M/blob/master/vignettes/introduction.Rmd).
+
+(1) Estimated latent "Satisfaction with the status quo" from Afrobarometer rounds 4, 5, 6 in 32 countries surveyed by the Afrobarometer survey. 
+
+![allThetasVisualized_UrbanRuralDivide](https://github.com/dasiegel/IRT-M/assets/10012916/65dffdf3-8a9a-4222-b897-53ead9a7e0d1)
 
 
 ### Troubleshooting Installation Problems

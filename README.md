@@ -43,16 +43,20 @@ Without IRT-M, this is a tricky measure to produce for several reasons, includin
 - Respondent interpretations of survey questions vary contextually by location and time
 - The survey instrument changes across waves
 
-We address the incompatability by coding a separate constraints (M) matrix for each country-year. So long as our coding accurately captures the contextual variation in how respondents interpret and respond to questions, our measure will be consistent. As well, interested parties can review the matrix coding and either confirm our interpretation or estimate an alternative version that reflects their own understanding.
+We address the incompatibility by coding a separate constraints (M) matrix for each country and survey year. As long as our coding accurately captures the contextual variation in how respondents interpret and respond to questions, our measure will be consistent. Interested parties can review the matrix coding and either confirm our interpretation or estimate an alternative version that reflects their own understanding.
  
 (A) Cross-national comparison, disaggregated by location (urban, rural, and other).
 
 ![allThetasVisualized_UrbanRuralDivide](https://github.com/dasiegel/IRT-M/assets/10012916/65dffdf3-8a9a-4222-b897-53ead9a7e0d1)
 
-We can use this visualiation to uncover interesting patterns. For example, the distribution of estimated satisfaction differs significantly for Algeria's urban and rural populations during the 2011-2013 survey wave, with the rural leaning more positive. By the 2014-2015 wave, both urban and rural Algerians had similar response patterns. 
+We can use this visualization to uncover interesting patterns. For example, the distribution of estimated satisfaction differs significantly for Algeria's urban and rural populations during the 2011-2013 survey wave, with the rural leaning more positive. By the 2014-2015 wave, urban and rural Algerians had similar response patterns. 
 
 We can use the same IRT-M + respondent metadata to estimate within-country distributions according to salient local groupings. 
-(B) Estimate "satisfaction with the status quo" within country-rounds:
+
+(B) Estimate "satisfaction with the status quo" within country rounds:
+
+Here we can see estimates for latent satisfaction with the status quo for Niger in round 6 of the Afrobarometer, disaggregated by the ethnic group identification of the respondent. Notably, the distribution of satisfaction is more favorable for respondents reporting that they belong to the Arabe group than those who identified with the Zarma/Songhai group-- a finding that we can validate (or falsify).
+![Niger Round 6](https://github.com/dasiegel/IRT-M/blob/master/man/figures/Niger_R6-theta1_group_mean_posterior.png)
 
 
 ### Troubleshooting Installation Problems

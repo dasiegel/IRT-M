@@ -37,16 +37,20 @@ The IRT-M model takes a set of data composed of an array of choices (e.g., answe
 
 Below we present some examples of IRT-M use cases. A full walkthrough can be found in the [vignette](https://github.com/dasiegel/IRT-M/blob/master/vignettes/introduction.Rmd).
 
-(1) Estimated a latent "Satisfaction with the status quo" dimension from 32 countries surveyed by Afrobarometer across three collection waves. 
+(1) Estimated a latent "Satisfaction with the status quo" dimension from 32 countries surveyed by Afrobarometer across three collection waves. We disaggregated the estimates by location (urban, rural, and other).
 
-Without IRT-M, this is a difficult measure to produce for several reasons, including that:
+Without IRT-M, this is a tricky measure to produce for several reasons, including:
 - Respondent interpretations of survey questions vary contextually by location and time
 - The survey instrument changes across waves
 
-We address this source of incompatability by coding a separate constraints (M) matrix for each country-year. So long as our coding accurately captures the contextual variation in how respondents interpret and respond to questions, our measure will be consisent. As well, interested parties can review and the matrix coding and either confirm our interpretation or estimate an alternative version that reflects their own understanding.
+We address the incompatability by coding a separate constraints (M) matrix for each country-year. So long as our coding accurately captures the contextual variation in how respondents interpret and respond to questions, our measure will be consistent. As well, interested parties can review the matrix coding and either confirm our interpretation or estimate an alternative version that reflects their own understanding.
 
 ![allThetasVisualized_UrbanRuralDivide](https://github.com/dasiegel/IRT-M/assets/10012916/65dffdf3-8a9a-4222-b897-53ead9a7e0d1)
 
+Using IRT-M, we can discover insights that we can use for future research and\/or validate with subject matter expertise. 
+
+For example:
+The distribution of estimated satisfaction differs significantly for Algeria's urban and rural populations during the 2011-2013 survey wave, with the rural leaning more positive. By the 2014-2015 wave, both urban and rural Algerians had similar response patterns. 
 
 ### Troubleshooting Installation Problems
 

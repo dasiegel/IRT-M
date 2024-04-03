@@ -56,8 +56,18 @@ We can use the same IRT-M + respondent metadata to estimate within-country distr
 (B) Estimate "satisfaction with the status quo" within country rounds:
 
 Here we can see estimates for latent satisfaction with the status quo for Niger in round 6 of the Afrobarometer, disaggregated by the ethnic group identification of the respondent. Notably, the distribution of satisfaction is more favorable for respondents reporting that they belong to the Arabe group than those who identified with the Zarma/Songhai group-- a finding that we can validate (or falsify).
+
 ![Niger Round 6](https://github.com/dasiegel/IRT-M/blob/master/man/figures/Niger_R6-theta1_group_mean_posterior.png)
 
+(2) Cross-national trends, disaggregated by a theoretically-important attribute. 
+
+Here we take the 2021 Eurobarometer data and estimate six latent dimensions: a sense of cultural threat (Theta 1), a sense of religious threat (Theta 2), a sense of economic threat (Theta 3), a sense of health threat (Theta 4), support for immigration (Theta 5), and support for the European Union (Theta 6).
+
+We can then take IRT-M's estimate of this latent dimension and visualize the distribution of the latent dimensions learned by IRT-M according to attributes in the Eurobarometer's metadata. In this case, we focus on relationships to media: 
+
+![Threat by media](https://github.com/dasiegel/IRT-M/blob/master/man/figures/ThetaEstByMediaTrust.png)
+
+We can find that differing media consumption and trust patterns are associated with different perceptions of threats, as well as differing levels of support for immigration and support for the European Union. 
 
 ### Troubleshooting Installation Problems
 

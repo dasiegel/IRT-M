@@ -12,7 +12,7 @@
 
 <meta name="author" content="Margaret Foster" />
 
-<meta name="date" content="2024-03-29" />
+<meta name="date" content="2024-05-01" />
 
 <title>IRT-M Vignette</title>
 
@@ -340,7 +340,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">IRT-M Vignette</h1>
 <h4 class="author">Margaret Foster</h4>
-<h4 class="date">2024-03-29</h4>
+<h4 class="date">2024-05-01</h4>
 
 
 
@@ -433,27 +433,21 @@ used the <code>dummy_cols()</code> utility from the
 dataframe as <code>Y</code> to underscore that this is the observed data
 that we will be modeling. Please ensure that the <code>dataPath</code>
 variable is adjusted for your local file structure.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># version: tidyverse_2.0.0 </span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(stats) <span class="co"># version: stats4</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(fastDummies) <span class="co"># version: fastDummies_1.7.3</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">library</span>(ggplot2)  <span class="co"># version: ggplot2_3.4.4</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">library</span>(IRTM) <span class="co">#version 1.00</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>datapath <span class="ot">&lt;-</span> <span class="st">&quot;../data/&quot;</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="fu">load</span>(<span class="at">file=</span><span class="fu">paste0</span>(datapath, <span class="st">&#39;ebdat.rda&#39;</span>))</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>ebdatsub <span class="ot">&lt;-</span> ebdat[,<span class="fu">c</span>(<span class="dv">58</span><span class="sc">:</span><span class="dv">413</span>)]</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="fu">rm</span>(ebdat) <span class="do">## only keep the subset that we will work with</span></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="do">## Convert numeric ordinal responses to factors</span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>ebdatsub <span class="ot">&lt;-</span> <span class="fu">lapply</span>(ebdatsub[,], factor)</span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>ebbinary <span class="ot">&lt;-</span> <span class="fu">dummy_cols</span>(<span class="at">.data=</span>ebdatsub,</span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>                       <span class="at">remove_selected_columns=</span><span class="cn">TRUE</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>Y <span class="ot">&lt;-</span> ebbinary <span class="do">## data</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="do">## remove the .data. in the binary:</span></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="fu">colnames</span>(Y) <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;.data.&quot;</span>, <span class="st">&#39;&#39;</span>, <span class="fu">colnames</span>(Y))</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>datapath <span class="ot">&lt;-</span> <span class="st">&quot;../data/&quot;</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">load</span>(<span class="at">file=</span><span class="fu">paste0</span>(datapath, <span class="st">&#39;ebdat.rda&#39;</span>))</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>ebdatsub <span class="ot">&lt;-</span> ebdat[,<span class="fu">c</span>(<span class="dv">58</span><span class="sc">:</span><span class="dv">413</span>)]</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">rm</span>(ebdat) <span class="do">## only keep the subset that we will work with</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="do">## Convert numeric ordinal responses to factors</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>ebdatsub <span class="ot">&lt;-</span> <span class="fu">lapply</span>(ebdatsub[,], factor)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>ebbinary <span class="ot">&lt;-</span> <span class="fu">dummy_cols</span>(<span class="at">.data=</span>ebdatsub,</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>                       <span class="at">remove_selected_columns=</span><span class="cn">TRUE</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>Y <span class="ot">&lt;-</span> ebbinary <span class="do">## data</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="do">## remove the .data. in the binary:</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="fu">colnames</span>(Y) <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">&quot;.data.&quot;</span>, <span class="st">&#39;&#39;</span>, <span class="fu">colnames</span>(Y))</span></code></pre></div>
 <p>In this case, we are interested whether respondents to the 2021
 Eurobarometer reported feeling social, cultural, and/or economic
 threats. Depending on the data, you may need to do some additional
@@ -824,8 +818,8 @@ more human-readable. At this stage, we convert several of the metadata
 columns to factors, to facilitate the visualizations.</p>
 <p>We finish by calling R’s <code>head()</code> method to preview the
 data.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>idvs <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">paste0</span>(dataPath,</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>                        <span class="st">&quot;ebdatDemographVaribs.csv&quot;</span>))</span>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>idvs <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">paste0</span>(datapath,</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>                        <span class="st">&quot;ebdatDemographVaribs.rda&quot;</span>))</span>
 <span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a></span>
 <span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>thetas <span class="ot">&lt;-</span> <span class="fu">cbind</span>(avgthetas, idvs)</span>
 <span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a></span>

@@ -324,8 +324,8 @@ Troubleshooting note: you get an error message that `arguments imply differing n
 We finish by calling R's `head()` method to preview the data.
 
 ```{r, eval=F, echo=T}
-idvs <- read.csv(paste0(dataPath,
-                        "ebdatDemographVaribs.csv"))
+idvs <- read.csv(paste0(datapath,
+                        "ebdatDemographVaribs.rda"))
 
 thetas <- cbind(avgthetas, idvs)
 

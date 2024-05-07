@@ -61,7 +61,7 @@ Here we can see estimates for latent satisfaction with the status quo for Niger 
 
 (2) Cross-national trends, disaggregated by a theoretically-important attribute. 
 
-Here we take the 2021 Eurobarometer data and estimate six latent dimensions: a sense of cultural threat (Theta 1), a sense of religious threat (Theta 2), a sense of economic threat (Theta 3), a sense of health threat (Theta 4), support for immigration (Theta 5), and support for the European Union (Theta 6).
+Here we take data from the 2021 Eurobarometer 94.3 survey round and estimate six latent dimensions: a sense of cultural threat (Theta 1), a sense of religious threat (Theta 2), a sense of economic threat (Theta 3), a sense of health threat (Theta 4), support for immigration (Theta 5), and support for the European Union (Theta 6).
 
 We can then take IRT-M's estimate of this latent dimension and visualize the distribution of the latent dimensions learned by IRT-M according to attributes in the Eurobarometer's metadata. In this case, we focus on relationships to media: 
 

@@ -51,7 +51,7 @@ Regardless of the use case, there are three steps to  preparing data for the IRT
 
 ## Loading the package
 
-Gfortran will be a necessary component in loading the package. Gfortran can be readily downloaded and the version installed can be checked: On Windows, enter into the command line "$ gfortran --version GNU Fortran." On Mac, enter into the terminal "which gfortran." After gfortran has been successfully installed, it is important to also have GCC (GNU Compiler Collection) installed. 
+Gfortran is a necessary to load the package. Gfortran can be readily downloaded and the version installed can be checked: On Windows, enter into the command line "$ gfortran --version GNU Fortran." On Mac, enter into the terminal "which gfortran." After gfortran has been successfully installed, it is important to also have GCC (GNU Compiler Collection) installed. 
 
 ## Formatting the Observed Data
 

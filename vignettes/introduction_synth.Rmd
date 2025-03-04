@@ -189,14 +189,16 @@ question <- combine[,1] %>%
     as.data.frame() 
 colnames(Y) <- question[,1]
 
-## Save M and Y for the sampler
-saveRDS(M,
-        file=paste0(datapath,
-                    "EB_M.rds"))
+## Optional: 
+## Save data objects for downstream analysis
+## (Commented out in the vignette, because we don't use it) #
+# Saving as rda for CRAN preferences
+#save(M, file=paste0(datapath,
+#                    "EB_M.Rda"))
 
-saveRDS(Y,
-        file=paste0(datapath,
-                    "EB_Y.rds"))
+#save(Y,
+#        file=paste0(datapath,
+#                    "EB_Y.Rda"))
 ```
 
 ## Anchors

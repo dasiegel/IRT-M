@@ -16,7 +16,7 @@
 #' Record of roll call votes during the S109 legislative session. 
 #' Each vote includes the NOMINATE scores associated with the vote
 #' 
-@format A data frame with the following variables:
+#' @format A data frame with the following variables:
   #' \describe{
   #'   \item{congress}{Congressional session number (109)}
   #'   \item{chamber}{Chamber ("Senate")}

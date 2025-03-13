@@ -6,6 +6,7 @@
 \title{Comprehensive Voting Data}
 \format{
 Similar documentation as above...
+congress	chamber	rollnumber	icpsr	cast_code	prob
 }
 \description{
 Aggregated voting information for the S109 legislative session.

@@ -5,9 +5,11 @@
 \alias{synth_idvs}
 \title{Synthetic Independent Variables}
 \format{
-A data frame with synthetic research variables
+A 3000 row and 27 column dataset of synthetic survey responses. This closely follows the 94.3 Eurobarometer survey in structure.
+This dataset is a toy that is intended for the IRT-M vignette. For real analysis, see the original Eurobarometer data collection.
 }
 \description{
-Synthetic dataset of independent variables for statistical analysis.
+A synthetic dataset of independent variables for post-estimate analysis in the vignette.
+Extraction of the data from the synthetic survey is described in the vignette.
 }
 \keyword{datasets}

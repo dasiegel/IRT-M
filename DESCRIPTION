@@ -29,9 +29,17 @@ Depends:
     RcppDist,
     R (>= 2.10)
 Suggests: 
-    rmarkdown,
     knitr,
-    testthat (>= 3.0.0)
+    reshape2,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    RColorBrewer,
+    dplyr,
+    fastDummies,
+    ggplot2,
+    ggrepel,
+    ggridges,
+    tidyverse
 VignetteBuilder: knitr
 LazyData: true
 LinkingTo: 
@@ -39,7 +47,8 @@ LinkingTo:
     RcppArmadillo,
     RcppDist,
     RcppProgress
-Imports: 
+Imports:  
+    coda,
     Rcpp,
-    RcppArmadillo
+    RcppArmadillo,
 Config/testthat/edition: 3

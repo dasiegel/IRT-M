@@ -1,3 +1,11 @@
+#' @title Mean Squared Error
+#' @description loss function for benchmarks
+#' @param ytrue observed values,
+#' @param ypred predicted values 
+#' @param aggregate logical for whether to take mean of estimate
+#' @param root logical for whether to return square root of MSE
+#' @return mean squared error
+#' @export
 
 mse <- function(ytrue, ypred, aggregate=TRUE, root=FALSE){
   ytrue_sd <- apply(ytrue, 2, sd)
@@ -11,6 +19,14 @@ mse <- function(ytrue, ypred, aggregate=TRUE, root=FALSE){
 
   return(ret)
 }
+
+#' @title Geweke Convergence
+#' @description Runs Geweke tests to assess MCMC convergence
+#' @param THETA Matrix of parameter estimates from IRTM
+#' @return Proportion of values that fail the Geweke convergence test (p < 0.05) for each parameter
+#' @importFrom coda geweke.diag
+#' @importFrom stats pnorm
+#' @export
 
 Geweke_convergence <- function(THETA){
   N <- dim(THETA)[1]
@@ -30,11 +46,26 @@ Geweke_convergence <- function(THETA){
   count/N
 }
 
+#' @title Standardize Theta
+#' @description standardizes theta estimates
+#' @param theta estimated object 
+#' @param Sigma covariance matrix 
+#' @return theta divided by sigma param
+#' @export
 
 standardize_theta <- function(theta, Sigma){
   theta_std <- t(t(theta)/sqrt(diag(Sigma)))
   theta_std
 }
+
+#' @title Theta Lambda Traceplots
+#' @description Creates traceplots for IRT parameter convergence diagnostics
+#' @param irt An object containing theta and lambda parameters from an IRTM model
+#' @param i Index of the respondent to plot (randomly selected if NULL)
+#' @param k Index of the item to plot (randomly selected if NULL)
+#' @return Plots of theta, lambda, and their product across MCMC iterations
+#' @importFrom graphics par
+#' @export
 
 theta_lambda_traceplots <- function(irt, i=NULL, k=NULL){
   theta = irt$theta

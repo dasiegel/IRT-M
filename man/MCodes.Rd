@@ -4,10 +4,28 @@
 \name{MCodes}
 \alias{MCodes}
 \title{Methodological Codes}
-\format{
-A data frame or other appropriate data structure
+\source{
+IRT-M vignette walk through.
 }
 \description{
-Coding scheme and reference codes used in the legislative analysis.
+Factor loading matrix for IRT-M vignette. This is a 793 row and 9 column dataset.
+The rows are derived from the binary encoding of the synthetic survey, with a row for every
+binarized question in the survey. The first 56 rows are retained metadata, and have lots of NA.
+
+The data format is an intermediary processing for IRT-M, and is detailed in the vignette text.
+
+@format A data frame with the following variables:
+#' \describe{
+\item{QCode}{Mapping of the dimension coding key to the underlying question in the original (synthetic) survey data.
+The first 56 rows are blank because they map to survey and respondent metadata that doesn't relate to dimensions.}
+\item{QMap}{Mapping to the question in data processed by the vignette for variable estimation. }
+\item{SubstantiveNotes}{Brief human readable comments on the substantive meaning of the coded questions. These are for convenience of reference.}
+\item{D1-Culture threat}{Loading vector for the cultural threat dimension. A 1 indicates that the question is expected to load.}
+\item{D2-ReligionThreat}{Loading vector for the religious threat dimension.}
+\item{D3-Economic Threat}{Loading vector for the economic threat dimension.}
+\item{D4-HealthThreat}{Loading vector for the health threat dimension.}
+\item{O1-OutcomeSupportImmigration}{Loading vector for the immigration support composite.}
+\item{O2-OutcomeSupportEU}{Loading vector for the European Union support composite.}
+}
 }
 \keyword{datasets}

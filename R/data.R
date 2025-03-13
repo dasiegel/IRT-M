@@ -69,7 +69,6 @@ NULL
 #' The data format is an intermediary processing for IRT-M, and is detailed in the vignette text.
 #' 
 #'  @format A data frame with the following variables:
-#'  [MJF: to here 3/09]
 #'#' \describe{
 #'   \item{QCode}{Mapping of the dimension coding key to the underlying question in the original (synthetic) survey data.
 #'    The first 56 rows are blank because they map to survey and respondent metadata that doesn't relate to dimensions.}
@@ -125,35 +124,37 @@ NULL
 #' A dataset of the constraints matrix for IRT-M analysis of votes in the 109th U.S. Senate.
 #' The format is unlovely because it was coded in Excel and not harmonized with R.
 #'  It is retained as an intermediary step between research team processing and IRT-M analysis.
-#'  
+#'  The column names were cleaned up in March 2025 to remove special characters
 #' @format A data frame with observations on various policy dimensions:
 #' \describe{
-#'   \item{...1}{Index or identifier column}
-#'   \item{Clerk Sn Vote #}{Clerk Senate Vote Number identifier}
-#'   \item{Vote #}{Vote number identifier}
-#'   \item{Defense Security...4}{Indicator for whether the vote is positive, neutral, or negatively related to defense or security issues (column 4)}
-#'   \item{Economic Development}{Indicator for whether the vote is positive, neutral, or negatively related to economic development}
-#'   \item{Civil Rights Social Equality...6}{Indicator for whether the vote is positive, neutral, or negatively related to civil rights or social equality (column 6)}
-#'   \item{Entitlements RedistributionWelfare}{Indicator for whether the vote is positive, neutral, or negatively related to entitlements, redistribution, or welfare programs}
-#'   \item{Socio-Cultural}{Indicator for whether the vote is positive, neutral, or negatively related to socio-cultural issues}
-#'   \item{...9}{Junk Excel column that should have been dropped in formatting, but is here to not interfere with the example code indexes.}
-#'   \item{Economic Redistribution...10}{Indicator for whether the vote is positive, neutral, or negatively related to economic or redistribution issues (column 10)}
-#'   \item{Social Cultural...11}{Indicator for whether the vote is positive, neutral, or negatively related to social or cultural issues (column 11)}
-#'   \item{Civil Rights Social Equality...12}{Indicator for whether the vote is positive, neutral, or negatively related to civil rights or social equality (column 12)}
-#'   \item{Defense Security...13}{Indicator for whether the vote is positive, neutral, or negatively related to defense or security issues (column 13)}
-#'   \item{...14}{Excel formatting retained for indexing}
-#'   \item{Economic Redistribution...15}{Indicator for whether the vote is positive, neutral, or negatively related to economic or redistribution issues (column 15)}
-#'   \item{Social Cultural...16}{Indicator for whether the vote is positive, neutral, or negatively related to social or cultural issues (column 16)}
-#'   \item{Civil Rights Social Equality...17}{Indicator for whether the vote is positive, neutral, or negatively related to civil rights or social equality (column 17)}
-#'   \item{...18}{Excel formatting retained for indexing}
-#'   \item{Economic Redistribution...19}{Indicator for whether the vote is positive, neutral, or negatively related to economic or redistribution issues (column 19)}
-#'   \item{Social Cultural Civil Rights Equality}{Indicator for whether the vote is positive, neutral, or negatively related to social, cultural, civil rights, or equality issues}
+#' \item{Index1}{Index column from Excel}, 
+#' \item{Clerk_Sn_Vote_Num}{},
+#' \item{Vote_Num}{},
+#'   \item{Defense_Security_4}{Indicator for whether the vote related to defense or security issues (column 4)}
+#'   \item{Economic_Development}{Indicator for whether the vote related to economic development}
+#'   \item{Civil_Rights_Social_Equality_6}{Indicator for whether the vote related to civil rights or social equality (column 6)}
+#'   \item{Entitlements_Redistribution_Welfare}{Indicator for whether the vote related to entitlements, redistribution, or welfare programs}
+#'   \item{Socio_Cultural}{Indicator for whether the vote related to socio-cultural dimensions}
+#'   \item{Col_9}{Index column from Excel}
+#'   \item{Economic_Redistribution_10}{Indicator for economic or redistribution dimensions (column 10)}
+#'   \item{Social_Cultural_11}{Indicator for vote related to social or cultural dimensions (column 11)}
+#'   \item{Civil_Rights_Social_Equality_12}{Indicator for civil rights or social equality dimensions (column 12)}
+#'   \item{Defense_Security_13}{Indicator for defense or security dimensions (column 13)}
+#'   \item{Col_14}{Index column from Excel}
+#'   \item{Economic_Redistribution_15}{Indicator for vote related to economic or redistribution dimension (column 15)}
+#'   \item{Social_Cultural_16}{Indicator for social or cultural dimension (column 16)}
+#'   \item{Civil_Rights_Social_Equality_17}{Indicator for civil rights or social equality dimension (column 17)}
+#'   \item{Col_18}{Index column from Excel}
+#'   \item{Economic_Redistribution_19}{Indicator for economic or redistribution dimension (column 19)}
+#'   \item{Social_Cultural_Civil_Rights_Equality}{Indicator for social, cultural, civil rights, or equality dimension}
 #' }
-#'
+
+#' @format A data frame with observations on various policy dimensions:
+#' 
 #' @details This dataset provides coding classifications for Senate votes across multiple policy dimensions.
-#' The coding scheme categorizes votes into areas such as defense/security, economic issues, civil rights,
-#' entitlements, and socio-cultural issues. Multiple columns for each category may represent different
-#' coding schemes or levels of classification.
+#' The coding scheme categorizes votes into underlying dimensions including: defense/security, economic issues, civil rights,
+#' entitlements, and socio-cultural. Columns represent different
+#' coding schemes or levels of classification. The values take 1 for positive loading, -1 for negative loading, 0 for no loading, and NA for unknown.
 #'
 #' @source Voting records for the 109th Congressional session with IRT-M coding for underlying dimensions.
 #'

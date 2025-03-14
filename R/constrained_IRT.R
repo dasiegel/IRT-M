@@ -12,6 +12,8 @@
 #' @param learn_Omega a boolean specifying whether a covariance matrix for the latent loadings should be learned
 #' @param hyperparameters a list of hyperparamters for the model
 #' @param display_progress a  boolean specifying whether a progress bar should be displayed
+#' @importFrom tmvtnorm rtmvnorm
+#' @importFrom truncnorm rtruncnorm
 #' @export
 
 ## usethis namespace: start

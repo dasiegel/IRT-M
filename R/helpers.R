@@ -5,6 +5,7 @@
 #' @param aggregate logical for whether to take mean of estimate
 #' @param root logical for whether to return square root of MSE
 #' @return mean squared error
+#' @importFrom stats sd
 #' @export
 
 mse <- function(ytrue, ypred, aggregate=TRUE, root=FALSE){

@@ -12,8 +12,11 @@
 #' @param learn_Omega a boolean specifying whether a covariance matrix for the latent loadings should be learned
 #' @param hyperparameters a list of hyperparamters for the model
 #' @param display_progress a  boolean specifying whether a progress bar should be displayed
+#' @import RcppProgress
 #' @importFrom tmvtnorm rtmvnorm
 #' @importFrom truncnorm rtruncnorm
+#' @importFrom RcppArmadillo armadillo_version
+#' @importFrom RcppDist bayeslm
 #' @export
 
 ## usethis namespace: start

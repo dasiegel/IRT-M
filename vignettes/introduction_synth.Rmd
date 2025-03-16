@@ -66,21 +66,14 @@ The core step in using the IRT-M package is to map the underlying theoretical co
 To begin, we reformat data so that each possible answer becomes a separate binary question (One Hot encoding). In preparing the data, we used the `dummy_cols()` utility from the `fastdummies` package.  Finally, we rename the new binary dataframe as `Y` to underscore that this is the observed data that we will be modeling. Please ensure that the `dataPath` variable is adjusted for your local file structure.
 
 ```{r load-dat, eval=T, echo=T, message=F, warning = FALSE}
-## MODIFICATION FOR SYNTHETIC DATA
 
-datapath <- "../data/"
+data("synth_questions")
 
-ebdatsynth <- read.csv(file=paste0(datapath, 'synth_questions.csv'))
-
-colnames(ebdatsynth)
-
-## drop "X" and "unnamed" which are just row counters
-
-ebdatsynth[,c("X", "Unnamed..0")] <- NULL
+colnames(synth_questions)
 
 ## Convert numeric ordinal responses to factors
 
-ebdatsub <- lapply(ebdatsynth[,], factor) ## that's a list now
+ebdatsub <- lapply(synth_questions[,], factor) ## that's a list now
 
 ## converts the list back into a dataframe:
 ebbinary <- dummy_cols(.data=ebdatsub,
@@ -93,7 +86,7 @@ colnames(Y) <- gsub(".data.", '', colnames(Y))
 
 ## remove the data objects:
 rm(ebdatsub)
-rm(ebdatsynth)
+rm(synth_questions)
 ```
 
 In this case, we are interested whether respondents to the 2021 Eurobarometer reported feeling social, cultural, and/or economic threats. Depending on the data, you may need to do some additional processing at this step to ensure that each question coded is a binary response has a single relationship to each dimension being coded. Many surveys present questions formatted into feelings thermometers, matrices, or with many nested sub-questions. These may not load straightforwardly into a single dimension. For example, Question 377 (qa1.4) in our data asks for respondents' feelings about various current situations, compactly presented via a feeling thermometer for several sub-questions. In this example we will code the fourth, “How would you judge the current situation in [….] your personal job situation.” The respondent’s answer is coded as categorical variable ranging from 1-4, with a response of 1 corresponding to “Very Good” and 4 corresponding to “Very Bad.”  We imagine that this question directly relates to the “economic threat” underlying dimension that we hypothesize, with the negative end of the scale indicating feelings of economic threat and a negative answer suggesting no threat.
@@ -105,7 +98,7 @@ Thus, we expand the levels of the question prompt to become four separate yes/no
 + qa1a_4_3 Situation of personal job: rather bad
 + qa1a_4_4. Situation of personal job: very bad  
 
-Now we can use these prompts to code for our theoretical loading. In the M-Code matrix, we add a 1 to the column for the Economic Threat dimension for qa1a_4_3 and qa1a_4_4. Substantively, this means that responses to the qa1.4 with a value in the data of “3” or “4" are coded as individual respondents who likely score high on the “economic threat” dimension.  We can also code the inverse and give qa1a_4_1 and qa1a_4_2 the value of -1 on the M-Code matrix because we expect that Eurobarometer respondents who answer that they feel that their personal job situation is “very good” or “rather good” likely do not score highly on economic threat. 
+Now we can use these prompts to code for our theoretical loading. In the M-Code matrix, we add a 1 to the column for the Economic Threat dimension for qa1a_4_3 and qa1a_4_4. Substantively, this means that responses to the qa1.4 with a value in the data of “3” or “4" are coded as individual respondents who likely score high on the “economic threat” dimension.  We can also code the inverse and give qa1a_4_1 and qa1a_4_2 the value of -1 on the M-Code matrix because we expect that survey respondents who answer that they feel that their personal job situation is “very good” or “rather good” likely do not score highly on economic threat. 
 
 We repeat this process for each of the questions that we think relate (both positively and negatively) to our underlying theoretical frames and, if the outcome that we are interested in comes from the data, for questions that relate to the DV. This step is admittedly time consuming, but it is what allows us to make theoretical claims about the results. Fortunately we only need to code questions that are related to our underlying dimensions of interests.  
 
@@ -115,10 +108,11 @@ We thus end up with a `K x D` matrix, where `K` is the number of theoretically-s
 
 Fortunately, `K`, the number of binary questions to be hand coded, is likely to be substantially smaller than the overall number of dummy variables because we only need to code those questions that relate to the theory/outcome. We can ignore the rest, which will go into the model code as a 0. Finally, we if we want the model to impute unknown answers (such as did not answer/did not ask results) we can enter those into the `M-Code` matrix as “NA” and have the model impute values.
 
-For convenience, we processed the codes in a separate spreadsheet, which we import into the script. We also reduce the M-Matrix to include only rows with loading information.
+For convenience, we processed the codes in a separate tables, which we import into the script. We also reduce the M-Matrix to include only rows with loading information.
 
 ```{r load-mcodes, eval=T, echo=T, message=F, warning = F}
-load(file=paste0(datapath, 'mcodes.rda'))
+#load(file=paste0(datapath, 'mcodes.rda'))
+data("mcodes")
 ## Only keep M-Codes with loadings or outcomes:
 MCodes$encoding <- rowSums(abs(MCodes[,4:9])) 
 MCodes <- MCodes[which(MCodes$encoding > 0),]
@@ -189,16 +183,6 @@ question <- combine[,1] %>%
     as.data.frame() 
 colnames(Y) <- question[,1]
 
-## Optional: 
-## Save data objects for downstream analysis
-## (Commented out in the vignette, because we don't use it) #
-# Saving as rda for CRAN preferences
-#save(M, file=paste0(datapath,
-#                    "EB_M.Rda"))
-
-#save(Y,
-#        file=paste0(datapath,
-#                    "EB_Y.Rda"))
 ```
 
 ## Anchors
@@ -341,21 +325,16 @@ Once we have the individual-level Thetas, we can use the output of IRT-M for bot
 Here we read in a dataframe with demographic data from the survey, and bind that to the theta averages. 
 Troubleshooting note: you get an error message that `arguments imply differing number of rows` when you bind the estimated thetas to the underlying data, check to make sure that you have taken a summary statistic of the Thetas (here we used the mean) and that you have removed the synthetic anchor points.
 
-`idvs.csv' is a spreadsheet with a synthetic version of the independent variables from the underlying survey data. It takes the large survey dataset and extracts respondent-level questions that we're interested in for the visualizations: respondent unique identifies and country, their self-reported socioeconomic class, and their self-reported political orientation. In the following code, we import the data and attach it to our averaged user-level theta estimates. We also make the column names more human-readable. At this stage, we convert several of the metadata columns to factors, to facilitate the visualizations.
+`synth_idvs' is a table with a synthetic version of the independent variables from the underlying survey data. It takes the large survey dataset and extracts respondent-level questions that we're interested in for the visualizations: respondent unique identifies and country, their self-reported socioeconomic class, and their self-reported political orientation. In the following code, we import the data and attach it to our averaged user-level theta estimates. We also make the column names more human-readable. At this stage, we convert several of the metadata columns to factors, to facilitate the visualizations.
 
 We finish by calling R's `head()` method to preview the data.
 
 ```{r read-idvs, eval=T, echo=T}
 
 ## load idvs:
+data("synth_idvs")
 
-idvs <- read.csv(paste0(datapath, "synth_idvs.csv"))
-
-dim(idvs) ## 3000 x 27
-
-colnames(idvs) ## note that d63 is class qa6a are media trust
-
-thetas <- cbind(avgthetas, idvs)
+thetas <- cbind(avgthetas, synth_idvs)
 
 ## Rename columns for readability:
 colnames(thetas)[1:6] <- paste0("Theta", 1:6)

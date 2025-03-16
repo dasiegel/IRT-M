@@ -1,21 +1,21 @@
 #' Datasets for IRT-M Package
 #'
-#' Datasets for constrained IRT examples. 
-#' 
+#' Datasets for constrained IRT examples.
+#'
 #' The S109 data is used in:
 #' Morucci, Marco, Margaret J. Foster, Kaitlyn Webster, So Jin Lee, and David A. Siegel.
 #'"Measurement That Matches Theory: Theory-Driven Identification in Item Response Theory Models."
 #'  American Political Science Review (2024): 1-19.
-#'  
+#'
 #MCodes, synth_idvs, and synth_questions are included in the vignette
 
 #' @name S109_rollcalls
 #' @docType data
 #' @title Roll Call Votes for S109 Legislative Session
-#' @description 
-#' Record of roll call votes during the S109 legislative session. 
+#' @description
+#' Record of roll call votes during the S109 legislative session.
 #' Each vote includes the NOMINATE scores associated with the vote
-#' 
+#'
 #' @format A data frame with the following variables:
   #' \describe{
   #'   \item{congress}{Congressional session number (109)}
@@ -38,21 +38,21 @@
   #'   \item{dtl_desc}{Detailed description of the bill, when avaliable}
   #' }
   #'
-#' 
-#' @source 
-#' PSCL package: 
+#'
+#' @source
+#' PSCL package:
 #' Jackman S (2024). pscl: Classes and Methods for R Developed in the Political Science Computational Laboratory.
-#'  University of Sydney, Sydney, Australia. R package version 1.5.9, https://github.com/atahk/pscl/. 
-#' 
+#'  University of Sydney, Sydney, Australia. R package version 1.5.9, https://github.com/atahk/pscl/.
+#'
 #' @keywords datasets
 NULL
 
 #' @name S109_votes
 #' @docType data
 #' @title Comprehensive Voting Data
-#' @description 
+#' @description
 #' Aggregated voting information for the S109 legislative session.
-#' 
+#'
 #' @format Similar documentation as above...
 #' congress	chamber	rollnumber	icpsr	cast_code	prob
 #' @keywords datasets
@@ -61,13 +61,13 @@ NULL
 #' @name MCodes
 #' @docType data
 #' @title Methodological Codes
-#' @description 
+#' @description
 #' Factor loading matrix for IRT-M vignette. This is a 793 row and 9 column dataset.
 #' The rows are derived from the binary encoding of the synthetic survey, with a row for every
 #' binarized question in the survey. The first 56 rows are retained metadata, and have lots of NA.
-#' 
+#'
 #' The data format is an intermediary processing for IRT-M, and is detailed in the vignette text.
-#' 
+#'
 #'  @format A data frame with the following variables:
 #'#' \describe{
 #'   \item{QCode}{Mapping of the dimension coding key to the underlying question in the original (synthetic) survey data.
@@ -84,20 +84,20 @@ NULL
 
 #' @source
 #' IRT-M vignette walk through.
-#' 
+#'
 #' @keywords datasets
 NULL
 
 #' @name synth_idvs
 #' @docType data
 #' @title Synthetic Independent Variables
-#' @description 
+#' @description
 #' A synthetic dataset of independent variables for post-estimate analysis in the vignette.
 #' Extraction of the data from the synthetic survey is described in the vignette.
-#' 
+#'
 #' @format A 3000 row and 27 column dataset of synthetic survey responses. This closely follows the 94.3 Eurobarometer survey in structure.
-#' This dataset is a toy that is intended for the IRT-M vignette. For real analysis, see the original Eurobarometer data collection. 
-#' 
+#' This dataset is a toy that is intended for the IRT-M vignette. For real analysis, see the original Eurobarometer data collection.
+#'
 
 #' @keywords datasets
 NULL
@@ -105,14 +105,13 @@ NULL
 #' @name synth_questions
 #' @docType data
 #' @title Questions for the Synthetic European sentiment survey in the vignette
-#' @description 
+#' @description
 #' A synthetic dataset with 3000 rows and 148 questions.
 #' This data replicates the structure of questions following Eurobarometer 94.3 (2021).
 #' It is not intended to be analyzed independently from the vignette.
+#' '
+#' @format A data frame with 3000 rows and 148 columns representing synthetic survey responses
 #'
-#'
-#' @format A data frame containing synthetic survey question data
-#' 
 #' @keywords datasets
 NULL
 
@@ -127,7 +126,7 @@ NULL
 #'  The column names were cleaned up in March 2025 to remove special characters
 #' @format A data frame with observations on various policy dimensions:
 #' \describe{
-#' \item{Index1}{Index column from Excel}, 
+#' \item{Index1}{Index column from Excel},
 #' \item{Clerk_Sn_Vote_Num}{},
 #' \item{Vote_Num}{},
 #'   \item{Defense_Security_4}{Indicator for whether the vote related to defense or security issues (column 4)}
@@ -150,7 +149,7 @@ NULL
 #' }
 
 #' @format A data frame with observations on various policy dimensions:
-#' 
+#'
 #' @details This dataset provides coding classifications for Senate votes across multiple policy dimensions.
 #' The coding scheme categorizes votes into underlying dimensions including: defense/security, economic issues, civil rights,
 #' entitlements, and socio-cultural. Columns represent different
@@ -160,5 +159,5 @@ NULL
 #'
 #'
 #' @seealso \code{\link{S109_votes}}, \code{\link{S109_rollcalls}}
-#' 
+#'
 NULL

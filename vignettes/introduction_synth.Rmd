@@ -1,6 +1,6 @@
 ---
 title: "IRT-M Vignette (Synthetic Data)"
-author: "Margaret Foster"
+author: "Margaret J Foster"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -67,13 +67,12 @@ To begin, we reformat data so that each possible answer becomes a separate binar
 
 ```{r load-dat, eval=T, echo=T, message=F, warning = FALSE}
 
-data("synth_questions")
+synth_questions <- NULL  # Initialize to avoid R CMD check notes
 
-colnames(synth_questions)
-
+load("./vdata/synth_questions.rda")
 ## Convert numeric ordinal responses to factors
 
-ebdatsub <- lapply(synth_questions[,], factor) ## that's a list now
+ebdatsub <- lapply(ebdatsynth[,], factor) ## that's a list now
 
 ## converts the list back into a dataframe:
 ebbinary <- dummy_cols(.data=ebdatsub,
@@ -86,7 +85,7 @@ colnames(Y) <- gsub(".data.", '', colnames(Y))
 
 ## remove the data objects:
 rm(ebdatsub)
-rm(synth_questions)
+rm(ebdatsynth)
 ```
 
 In this case, we are interested whether respondents to the 2021 Eurobarometer reported feeling social, cultural, and/or economic threats. Depending on the data, you may need to do some additional processing at this step to ensure that each question coded is a binary response has a single relationship to each dimension being coded. Many surveys present questions formatted into feelings thermometers, matrices, or with many nested sub-questions. These may not load straightforwardly into a single dimension. For example, Question 377 (qa1.4) in our data asks for respondents' feelings about various current situations, compactly presented via a feeling thermometer for several sub-questions. In this example we will code the fourth, “How would you judge the current situation in [….] your personal job situation.” The respondent’s answer is coded as categorical variable ranging from 1-4, with a response of 1 corresponding to “Very Good” and 4 corresponding to “Very Bad.”  We imagine that this question directly relates to the “economic threat” underlying dimension that we hypothesize, with the negative end of the scale indicating feelings of economic threat and a negative answer suggesting no threat.
@@ -111,8 +110,8 @@ Fortunately, `K`, the number of binary questions to be hand coded, is likely to 
 For convenience, we processed the codes in a separate tables, which we import into the script. We also reduce the M-Matrix to include only rows with loading information.
 
 ```{r load-mcodes, eval=T, echo=T, message=F, warning = F}
-#load(file=paste0(datapath, 'mcodes.rda'))
-data("mcodes")
+load('./vdata/mcodes.rda')
+
 ## Only keep M-Codes with loadings or outcomes:
 MCodes$encoding <- rowSums(abs(MCodes[,4:9])) 
 MCodes <- MCodes[which(MCodes$encoding > 0),]
@@ -332,9 +331,9 @@ We finish by calling R's `head()` method to preview the data.
 ```{r read-idvs, eval=T, echo=T}
 
 ## load idvs:
-data("synth_idvs")
+load("./vdata/synth_idvs.rda")
 
-thetas <- cbind(avgthetas, synth_idvs)
+thetas <- cbind(avgthetas, synthidvs)
 
 ## Rename columns for readability:
 colnames(thetas)[1:6] <- paste0("Theta", 1:6)

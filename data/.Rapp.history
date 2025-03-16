@@ -1,1 +1,2 @@
 load("/Users/Promachos/Dropbox (Personal)/Research/Interventions/Theory-IRT/IRTM/data/y_test.rda")
+load("/Users/Promachos/Dropbox (Personal)/IRTM-Pkg/IRTM/data/synth_questions.rda")

@@ -8,7 +8,7 @@ Authors@R:
            email = "moruccim@msu.edu"),
     person(given = "Margaret",
            family = "Foster",
-           role = "aut",
+            role = "cre",
            comment = c(ORCID = "0000-0002-6418-8394")),
     person(given = "David",
            family = "Siegel",

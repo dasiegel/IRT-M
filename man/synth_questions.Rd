@@ -5,11 +5,12 @@
 \alias{synth_questions}
 \title{Questions for the Synthetic European sentiment survey in the vignette}
 \format{
-A data frame containing synthetic survey question data
+A data frame with 3000 rows and 148 columns representing synthetic survey responses
 }
 \description{
 A synthetic dataset with 3000 rows and 148 questions.
 This data replicates the structure of questions following Eurobarometer 94.3 (2021).
 It is not intended to be analyzed independently from the vignette.
+'
 }
 \keyword{datasets}

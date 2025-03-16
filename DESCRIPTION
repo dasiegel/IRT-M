@@ -12,7 +12,7 @@ Authors@R:
            comment = c(ORCID = "0000-0002-6418-8394")),
     person(given = "David",
            family = "Siegel",
-	   role = c("cre"),
+	   role = "cre",
 	   email = "david.siegel@duke.edu",
            comment = c(ORCID = "0000-0003-1619-6119")))
 Description: IRT-M is a semi-supervised approach based on Bayesian Item Response Theory

@@ -1,5 +1,5 @@
 Package: IRTM
-Title: Theory-driven Item Response Theory (IRT) models
+Title: Theory-Driven Item Response Theory (IRT) models
 Version: 0.0.0.9000
 Authors@R: 
     c(person(given = "Marco",
@@ -40,7 +40,8 @@ Suggests:
     ggplot2,
     ggrepel,
     ggridges,
-    tidyverse
+    tidyverse,
+    spelling
 VignetteBuilder: knitr
 LazyData: true
 LinkingTo: 
@@ -48,8 +49,9 @@ LinkingTo:
     RcppArmadillo,
     RcppDist,
     RcppProgress
-Imports:  
+Imports: 
     coda,
     Rcpp,
     RcppArmadillo,
 Config/testthat/edition: 3
+Language: en-US

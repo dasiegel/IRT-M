@@ -1,17 +1,23 @@
 #' @title M_constrained_irt
-#' This function allows you to run the IRT model
+#' @description This function allows you to run the IRT model.
 #' @param Y a N x K matrix of responses given by N respondents to K questions. Can contain missing values.
-#' @param d an integer specifying the number of latent dimensions
-#' @param M a list of K dxd matrices (default=NULL). 
+#' @param d an integer specifying the number of latent dimensions.
+#' @param M a list of K dxd matrices (default=NULL).
 #' @param theta_fix a matrix with d columns containing the values of the latent dimensions for respondents that have pre-specified latent factors.
 #' @param which_fix a vector containing the indices of the respondents for which latent factors have been fixed.
-#' @param nburn an integer specifying the number of burn-in MCMC iterations
-#' @param nsamp an integer specifying the number of sampling MCMC iterations
-#' @param thin an integer specifying the number of thinning MCMC samples
-#' @param learn_Sigma a boolean specifying whether a covariance matrix for the latent factors should be learned
-#' @param learn_Omega a boolean specifying whether a covariance matrix for the latent loadings should be learned
-#' @param hyperparameters a list of hyperparamters for the model
-#' @param display_progress a  boolean specifying whether a progress bar should be displayed
+#' @param nburn an integer specifying the number of burn-in MCMC iterations.
+#' @param nsamp an integer specifying the number of sampling MCMC iterations.
+#' @param thin an integer specifying the number of thinning MCMC samples.
+#' @param learn_Sigma a Boolean specifying whether a covariance matrix for the latent factors should be learned.
+#' @param learn_Omega a Boolean specifying whether a covariance matrix for the latent loadings should be learned.
+#' @param hyperparameters a list of hyperparamters for the model.
+#' @param display_progress a  boolean specifying whether a progress bar should be displayed.
+#' @return A list containing the following components:
+#'   \item{alpha}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
+#'   \item{beta}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
+#'   \item{theta}{An array of dimension (N x d x nsamp/thin) containing posterior samples of respondent latent trait values.}
+#'   \item{Sigma}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of latent traits (only if learn_Sigma=TRUE).}
+#'   \item{Omega}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of item loadings (only if learn_Omega=TRUE).}
 #' @import RcppProgress
 #' @importFrom tmvtnorm rtmvnorm
 #' @importFrom truncnorm rtruncnorm

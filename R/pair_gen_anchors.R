@@ -1,16 +1,20 @@
 #' @title pair_gen_anchors
-#' This function generates anchor points from the M matrices. 
-#' It creates d(d-1)*4 fake respondents such that, for every pair of dimensions: 
+#' @description This function generates anchor points from the M matrices.
+#' It creates d(d-1)*4 fake respondents such that, for every pair of dimensions:
 #' The first respondent has an extremely positive value of both dimensions of the pair,
 #' The second has an extremely positive value for dim 1 and an extremely negative value for dim 2 of each pair,
 #' The third has an extremely negative value for dim 1 and an extremely positive value for dim 2 of each pair,
 #' The fourth has an extremely negative value of both dimensions of the pair.
-#' These respondents' answers are imputed according to the directions of loadings specified by the M-matrices, i.e., 
+#' These respondents' answers are imputed according to the directions of loadings specified by the M-matrices, i.e.,
 #' if question k loads positively on dim 1 and positively on dim 2, the first respondent in the dim 1/dim 2 pair will have
-#' yes for question k. If question k+1 loads  positively on dim 1 and negatively on dim 2 then the second respondent in 
+#' yes for question k. If question k+1 loads  positively on dim 1 and negatively on dim 2 then the second respondent in
 #' the dim 1/dim 2 pair will have yes on question k+1 and so on.
 #' @param M a list containing K dxd M-matrices
-#' @param A What value should be considered extreme for the latent dimensions. 
+#' @param A What value should be considered extreme for the latent dimensions.
+#' @return A list with two elements:
+#'   \item{Yfake}{A matrix of dimension (d(d-1)*4 x K) containing the imputed answers of the fake anchor respondents, where d is the number of dimensions and K is the number of questions. Values are 0 (no) or 1 (yes).}
+#'   \item{theta_fake}{A list of d(d-1)*4 vectors, each of length d, representing the latent trait values for the fake anchor respondents. Each vector contains mostly zeros, with extreme values (A or -A) at the positions corresponding to the pair of dimensions being considered.}
+#' @export
 #' @export
 
 pair_gen_anchors = function(M,A){

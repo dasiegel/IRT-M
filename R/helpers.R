@@ -1,7 +1,7 @@
 #' @title Mean Squared Error
 #' @description loss function for benchmarks
 #' @param ytrue observed values,
-#' @param ypred predicted values 
+#' @param ypred predicted values
 #' @param aggregate logical for whether to take mean of estimate
 #' @param root logical for whether to return square root of MSE
 #' @return mean squared error
@@ -49,8 +49,8 @@ Geweke_convergence <- function(THETA){
 
 #' @title Standardize Theta
 #' @description standardizes theta estimates
-#' @param theta estimated object 
-#' @param Sigma covariance matrix 
+#' @param theta estimated object
+#' @param Sigma covariance matrix
 #' @return theta divided by sigma param
 #' @export
 
@@ -69,6 +69,13 @@ standardize_theta <- function(theta, Sigma){
 #' @export
 
 theta_lambda_traceplots <- function(irt, i=NULL, k=NULL){
+
+  # Store original par settings
+  oldpar <- par(no.readonly = TRUE)
+  # Restore original when function exits
+  on.exit(par(oldpar))
+
+
   theta = irt$theta
   lambda = irt$lambda
   if (is.null(i))
@@ -87,5 +94,4 @@ theta_lambda_traceplots <- function(irt, i=NULL, k=NULL){
   for(d in 1:D){
     plot(1:n, theta[i, d, ] * lambda[k, d, ], xlab = 'sample', ylab=paste('theta * lambda', d))
   }
-  par(mfrow=c(1,1))
 }

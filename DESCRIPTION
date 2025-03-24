@@ -1,6 +1,6 @@
 Package: IRTM
-Title: Theory-Driven Item Response Theory (IRT) models
-Version: 0.0.1.0
+Title: Theory-Driven Item Response Theory (IRT) Models
+Version: 0.0.1.1
 Authors@R: 
     c(person(given = "Marco",
            family = "Morucci",

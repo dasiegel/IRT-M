@@ -2,8 +2,7 @@
 % Please edit documentation in R/constrained_IRT.R
 \name{M_constrained_irt}
 \alias{M_constrained_irt}
-\title{M_constrained_irt
-This function allows you to run the IRT model}
+\title{M_constrained_irt}
 \usage{
 M_constrained_irt(
   Y,
@@ -23,7 +22,7 @@ M_constrained_irt(
 \arguments{
 \item{Y}{a N x K matrix of responses given by N respondents to K questions. Can contain missing values.}
 
-\item{d}{an integer specifying the number of latent dimensions}
+\item{d}{an integer specifying the number of latent dimensions.}
 
 \item{M}{a list of K dxd matrices (default=NULL).}
 
@@ -31,21 +30,28 @@ M_constrained_irt(
 
 \item{which_fix}{a vector containing the indices of the respondents for which latent factors have been fixed.}
 
-\item{nburn}{an integer specifying the number of burn-in MCMC iterations}
+\item{nburn}{an integer specifying the number of burn-in MCMC iterations.}
 
-\item{nsamp}{an integer specifying the number of sampling MCMC iterations}
+\item{nsamp}{an integer specifying the number of sampling MCMC iterations.}
 
-\item{thin}{an integer specifying the number of thinning MCMC samples}
+\item{thin}{an integer specifying the number of thinning MCMC samples.}
 
-\item{learn_Sigma}{a boolean specifying whether a covariance matrix for the latent factors should be learned}
+\item{learn_Sigma}{a Boolean specifying whether a covariance matrix for the latent factors should be learned.}
 
-\item{learn_Omega}{a boolean specifying whether a covariance matrix for the latent loadings should be learned}
+\item{learn_Omega}{a Boolean specifying whether a covariance matrix for the latent loadings should be learned.}
 
-\item{hyperparameters}{a list of hyperparamters for the model}
+\item{hyperparameters}{a list of hyperparamters for the model.}
 
-\item{display_progress}{a  boolean specifying whether a progress bar should be displayed}
+\item{display_progress}{a  boolean specifying whether a progress bar should be displayed.}
+}
+\value{
+A list containing the following components:
+\item{alpha}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
+\item{beta}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
+\item{theta}{An array of dimension (N x d x nsamp/thin) containing posterior samples of respondent latent trait values.}
+\item{Sigma}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of latent traits (only if learn_Sigma=TRUE).}
+\item{Omega}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of item loadings (only if learn_Omega=TRUE).}
 }
 \description{
-M_constrained_irt
-This function allows you to run the IRT model
+This function allows you to run the IRT model.
 }

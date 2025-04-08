@@ -20,59 +20,84 @@
 pair_gen_anchors = function(M,A){
   K = dim(M)[3]
   d = ncol(M)
-  Yfake = matrix (NA, d*(d-1)*4, K)
-  theta_fake = list()
-  i = 1
-  for (j in 1:d){
-    for (l in 1:d){
-      if(j==l)
-        next
-      for(k in 1:K){
-        #YY
-        Yfake[i, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
-                               (M[l, l, k] == 1 && M[j, j, k] != -1), 1, NA)
-        if(is.na(Yfake[i, k]))
-          Yfake[i, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
-                                 (M[l, l, k] == -1 && M[j, j, k] != 1), 0, NA)
-
-        #NY
-        Yfake[i+1, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
+  M[is.na(M)]=9
+  if (d>1) {
+    Yfake = matrix (NA, d*(d-1)*4, K)
+    theta_fake = list()
+    i = 1
+    for (j in 1:d){
+      for (l in 1:d){
+        if(j==l)
+          next
+        for(k in 1:K){
+          #YY
+          Yfake[i, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
                                  (M[l, l, k] == 1 && M[j, j, k] != -1), 1, NA)
-        if(is.na(Yfake[i+1, k]))
-          Yfake[i+1, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
+          if(is.na(Yfake[i, k]))
+            Yfake[i, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
                                    (M[l, l, k] == -1 && M[j, j, k] != 1), 0, NA)
 
-        #YN
-        Yfake[i+2, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
-                                 (M[l, l, k] == -1 && M[j, j, k] != 1), 1, NA)
-        if(is.na(Yfake[i+2, k]))
-          Yfake[i+2, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
-                                   (M[l, l, k] == 1 && M[j, j, k] != -1), 0, NA)
+          #NY
+          Yfake[i+1, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
+                                   (M[l, l, k] == 1 && M[j, j, k] != -1), 1, NA)
+          if(is.na(Yfake[i+1, k]))
+            Yfake[i+1, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
+                                     (M[l, l, k] == -1 && M[j, j, k] != 1), 0, NA)
 
-        #NN
-        Yfake[i+3, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
-                                 (M[l, l, k] == -1 && M[j, j, k] != 1), 1, NA)
-        if(is.na(Yfake[i+3, k]))
-          Yfake[i+3, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
-                                   (M[l, l, k] == 1 && M[j, j, k] != -1), 0, NA)
+          #YN
+          Yfake[i+2, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
+                                   (M[l, l, k] == -1 && M[j, j, k] != 1), 1, NA)
+          if(is.na(Yfake[i+2, k]))
+            Yfake[i+2, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
+                                     (M[l, l, k] == 1 && M[j, j, k] != -1), 0, NA)
 
+          #NN
+          Yfake[i+3, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
+                                   (M[l, l, k] == -1 && M[j, j, k] != 1), 1, NA)
+          if(is.na(Yfake[i+3, k]))
+            Yfake[i+3, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
+                                     (M[l, l, k] == 1 && M[j, j, k] != -1), 0, NA)
+
+        }
+        theta_fake[[i]] = rep(0, d)
+        theta_fake[[i]][j] = A
+        theta_fake[[i]][l] = A
+        theta_fake[[i+1]] = rep(0, d)
+        theta_fake[[i+1]][j] = -A
+        theta_fake[[i+1]][l] = A
+        theta_fake[[i+2]] = rep(0, d)
+        theta_fake[[i+2]][j] = A
+        theta_fake[[i+2]][l] = -A
+        theta_fake[[i+3]] = rep(0, d)
+        theta_fake[[i+3]][j] = -A
+        theta_fake[[i+3]][l] = -A
+        i = i+4
       }
-      theta_fake[[i]] = rep(0, d)
-      theta_fake[[i]][j] = A
-      theta_fake[[i]][l] = A
-      theta_fake[[i+1]] = rep(0, d)
-      theta_fake[[i+1]][j] = -A
-      theta_fake[[i+1]][l] = A
-      theta_fake[[i+2]] = rep(0, d)
-      theta_fake[[i+2]][j] = A
-      theta_fake[[i+2]][l] = -A
-      theta_fake[[i+3]] = rep(0, d)
-      theta_fake[[i+3]][j] = -A
-      theta_fake[[i+3]][l] = -A
-      i = i+4
     }
+  }else if (d==1) {
+    Yfake = matrix (NA, 2, K)
+    theta_fake = list()
+    for(k in 1:K){
+      #Y
+      if(M[1, 1, k] == 1) {
+        Yfake[1, k]=1
+      }else if(M[1, 1, k] == -1) {
+        Yfake[1, k]=0
+      }
+      #N
+      if(M[1, 1, k] == -1) {
+        Yfake[2, k]=1
+      }else if(M[1, 1, k] == 1) {
+        Yfake[2, k]=0
+      }
+    }
+    theta_fake[[1]] = rep(0, d)
+    theta_fake[[1]][1] = A
+    theta_fake[[2]] = rep(0, d)
+    theta_fake[[2]][1] = -A
+  }else {
+    stop("The number of dimensions is less than 1.")
   }
-
   fakeList<- list("Yfake" = Yfake, "theta_fake" = theta_fake)
   return(fakeList)
 }

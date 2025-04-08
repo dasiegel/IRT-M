@@ -28,4 +28,9 @@ The first 56 rows are blank because they map to survey and respondent metadata t
 \item{O2-OutcomeSupportEU}{Loading vector for the European Union support composite.}
 }
 }
+\details{
+Datasets for IRT-M Package
+
+MCodes, synth_idvs, and synth_questions are included in the vignette
+}
 \keyword{datasets}

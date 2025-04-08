@@ -36,34 +36,34 @@ library(RColorBrewer) #version: RColorBrewer_1.1-3
 library(ggrepel) # version: ggrepel_0.9.5 
 ```
 
-In this document we narratively walk through use of the IRT-M package.  
+In this document, we walk through using the IRT-M package. 
 
-While the IRT-M framework is case agnostic, this vignette focuses on a single use case in which a hypothetical research team is interested in seeking empirical support for the hypothesis that anti-immigration attitudes in Europe are associated with perceptions of cultural, economic, and security threats. We illustrate data preparation, IRT-M estimation, visualization, and analysis with a small synthetic dataset (N=3000) based on the Eurobarometer 94.3. The real data can be accessed via: \url{https://search.gesis.org/research_data/ZA7780?doi=10.4232/1.14076}.
+The IRT-M framework may be used for a wide variety of cases. This vignette focuses on a single, hypothetical, use case, in which a research team seeks empirical support for a hypothesis: in this case, the threat-response hypothesis that anti-immigration attitudes in Europe are associated with perceptions of cultural, economic, and security threats. We illustrate data preparation, IRT-M estimation, visualization, and analysis with a small synthetic dataset (N=3000) based on the Eurobarometer 94.3 wave. The real data can be accessed via: \url{https://search.gesis.org/research_data/ZA7780?doi=10.4232/1.14076}.
 
-This example illustrates one of the strengths of the IRT-M model; namely the (very common) situation in which researchers have a theoretical question and related data that does not directly address the substantive question of interest. In this case, we work through a research question derived from the literature on European attitudes towards immigration. The threat response hypothesis is supported by the literature~\cite{kentmen2017anti} but  was not a specific focus of the 2020-2021 Eurobarometer wave. Consequentially, the survey did not directly ask questions about the three threat dimensions of interest.  However, the survey contained several questions adjacent to threat perception.  We can use these questions to build an M-Matrix and estimate latent threat dimensions.
+This example illustrates one of the strengths of the IRT-M model: the (very common) situation in which researchers have a theoretical question and related data that does not directly address the substantive question of interest. In this case, we work through a research question derived from the literature on European attitudes towards immigration. The threat-response hypothesis is supported by the literature~\cite{kentmen2017anti}, but was not a specific focus of the 2020-2021 Eurobarometer wave. Consequentially, the survey did not directly ask questions about the three threat dimensions of interest.  However, the survey did contain several questions adjacent to threat perception.  We can use those questions to build what we call an M-Matrix (a matrix of constraints for the item discrimination loadings present in item response theory models), and estimate latent threat dimensions.
 
-Regardless of the use case, there are three steps to  preparing data for the IRT-M Package:
+Regardless of the use case, there are two steps involved in preparing data for the IRT-M Package:
 
-+ First, create a key for how you expect your theory to interact with the data. 
-+ Next, format the data so that it can be parsed by the sampler. 
-+ Third, create anchor points for the resulting scale.
++ First, one needs to acquire and appropriately format a dataset comprising a series of items, the responses to which one believes are related to the set of underlying theoretical concepts that one wants to measure. One input of IRT-M is this `N x K` data frame of `N` responses to `K` items. Column names of the data frame should provide the names of the items. We'll refer to this data frame as `Y_in` in what follows.
++ Second, one must create a key that specifies the theoretical connection between each item in one's data and each underlying concept. A second input of IRT-M, when run with constraints, is a `K x (1+d)` data frame of `K` items and their pre-specified theoretical connections to each of `d` dimensions. Those connections must be provided in the last d columns; the first column should contain item names, which must match the column names of the data matrix. We'll refer to this data frame as `M_matrix` in what follows.
 
+## Loading the package; Dependencies
 
-## Loading the package
-
-Gfortran is a necessary to load the package. Gfortran can be readily downloaded and the version installed can be checked: On Windows, enter into the command line "$ gfortran --version GNU Fortran." On Mac, enter into the terminal "which gfortran." After gfortran has been successfully installed, it is important to also have GCC (GNU Compiler Collection) installed. 
+Gfortran is a necessary to load the package. Gfortran can be readily downloaded and the version installed can be checked. In Windows, enter into the command line "$ gfortran --version GNU Fortran." The easiest way to make sure this works in Windows is to install Rtools, making sure that its version matches the version of R you are running. On a Mac, enter into the terminal "which gfortran." Some machines running Mac OS encounter a well-known problem with R finding `gfortran`. The steps for solving this are documented online, and typically entail a combination of installing `Xcode`, using `homebrew` to install `gcc`, and/or installing `gfortran` directly from `Github`. After `gfortran` has been successfully installed, it is important to also have `GCC` (GNU Compiler Collection) installed. In addition to `gcc` allowing its installation, the IRT-M package depends on functions developed in other libraries, and the `Rfortran` dependency requires `gcc` to be installed.
 
 ## Formatting the Observed Data
 
-Formatting the Data
+Formatting the Input Data
 
-IRT-M requires that users convert categorical variables into a numeric format with one response loaded into each input object (aka: question). The most straightforward way to do this is to use a library, such as `fastDummies` to expand the entire instrument into one-hot or binary encoding. This is also a good opportunity to export an empty data-frame with the list of question codes, to code the M-Code object. Doing so reduces the likelihood of formatting slippages that are tedious to fix.  We have also found it to be worthwhile to insert column with human-readable notes next to the question codes. This step adds some overhead, but--- much like commenting code in general--- is invaluable for debugging and analysis.
+Though we are working to extend it to other forms of data, at present, IRT-M operates only with binary (dichotomous) items. Thus, it requires that users convert continuous or categorical variables into a series of binary variables. Those binary variables will be the items, and responses to those items will be used to discern positions on each latent theoretical dimension one is attempting to measure.
 
-## Creating the M-Matrix
+The most straightforward way to convert to binary from a categorical variable is to use a library, such as `fastDummies`, to expand the entire set of variables into one-hot (binary) encoding. Similarly, one could use packages such as `arulesCBA` or `arules` to convert continuous variables to categorical variables, and then `fastDummies`to convert those categorical variables in binary variables. One's input data frame, Y_in, should have `N` dichotomous responses to each of `K` binary items; in addition to `0` and `1`, `NA` is also acceptable.
 
-The core step in using the IRT-M package is to map the underlying theoretical constructions of interest into an 'M-Matrix' of dimension loadings. In order to develop the loadings, we go through every question on the "test" object (here: every question in the survey) and decide whether the question relates to one of our hypothesized theoretical dimensions. For those questions that we believe load on the theoretical dimension of interest, we can code whether we expect it to positively load---meaning that an affirmative response implies more of the dimension--- or negatively load. We code positive "loading" as $1$ in the M-Matrix, negative "loading" as $-1$. We can also denote that the question has no relationship with the theoretical dimension of interest, in which case we code 0 into the dimension. If we are unsure, not coding the loading inserts $NA$ value, and the model will learn any loading during the estimation step.
+It is good practice, and will make one's life easier later, to capture the column headers of `Y_in` (which will be item codes) and export them for use in constructing the `M_matrix`. Doing so will avoid mismatches between the items in the input data and the items one will be coding.
 
-To begin, we reformat data so that each possible answer becomes a separate binary question (One Hot encoding). In preparing the data, we used the `dummy_cols()` utility from the `fastdummies` package.  Finally, we rename the new binary dataframe as `Y` to underscore that this is the observed data that we will be modeling. Please ensure that the `dataPath` variable is adjusted for your local file structure.
+The `Y_in` and `M_matrix` data frames described earlier are all one needs to use IRT-M. How one obtains them will vary by use case. We'll describe here how we obtained ours for this vignette, though some steps will be specific to our use case, in which we start with an M_matrix for the real, and complete, Eurobarometer 94.3 wave, but use input data that is a synthetic subset of the real data. (Morucci et. al 2024 used the real data.)
+
+To begin, we reformat the input data so that each possible answer becomes a separate binary item (One Hot encoding). In preparing the data, we used the `dummy_cols()` utility from the `fastdummies` package. If running this exact code on your own system, please ensure that the `dataPath` variable is adjusted for your local file structure.
 
 ```{r load-dat, eval=T, echo=T, message=F, warning = FALSE}
 
@@ -75,10 +75,8 @@ load("./vdata/synth_questions.rda")
 ebdatsub <- lapply(ebdatsynth[,], factor) ## that's a list now
 
 ## converts the list back into a dataframe:
-ebbinary <- dummy_cols(.data=ebdatsub,
+Y <- dummy_cols(.data=ebdatsub,
                        remove_selected_columns=TRUE)
-
-Y <- ebbinary ## data
 
 ## remove the .data that dummy_cols adds to the column names
 colnames(Y) <- gsub(".data.", '', colnames(Y))
@@ -88,7 +86,15 @@ rm(ebdatsub)
 rm(ebdatsynth)
 ```
 
-In this case, we are interested whether respondents to the 2021 Eurobarometer reported feeling social, cultural, and/or economic threats. Depending on the data, you may need to do some additional processing at this step to ensure that each question coded is a binary response has a single relationship to each dimension being coded. Many surveys present questions formatted into feelings thermometers, matrices, or with many nested sub-questions. These may not load straightforwardly into a single dimension. For example, Question 377 (qa1.4) in our data asks for respondents' feelings about various current situations, compactly presented via a feeling thermometer for several sub-questions. In this example we will code the fourth, “How would you judge the current situation in [….] your personal job situation.” The respondent’s answer is coded as categorical variable ranging from 1-4, with a response of 1 corresponding to “Very Good” and 4 corresponding to “Very Bad.”  We imagine that this question directly relates to the “economic threat” underlying dimension that we hypothesize, with the negative end of the scale indicating feelings of economic threat and a negative answer suggesting no threat.
+## Creating the M-Matrix
+
+Creating the M_matrix
+
+The core step in using the IRT-M package is to map the theoretical connections between items in the data and the underlying theoretical constructs of interest into an `M_Matrix` of dimension `K x (1+d)`. To do so, we go through every item in the data (here: every response to every question in the survey) and decide whether the item relates to zero, one, or more of our latent theoretical dimensions. For those items that we believe relate to a theoretical dimension of interest, we can code whether we expect it to positively load---meaning that higher values on that dimension are associated with greater responses to the item (here: greater means more likely to choose a given response to a given question)---or negatively load. We code positive "loading" as `1` for that item-dimension pair in the M_matrix, negative "loading" as `-1`. We can also denote that the item has no relationship with the theoretical dimension of interest, in which case we code `0` for that item-dimension pair. If we are unsure, we can use an `NA` value in the `M_matrix` for the item-dimension pair, and the model will assume relatively diffuse priors on that loading.
+
+If one has followed this vignette's advice and exported a column of item codes when formatting the input data frame, `Y_in`, then the easiest way to specify the `M_matrix` is to open a spreadsheet with the first column (labeled `QMap` in the vignette) being the item codes, and the remaining `d` columns the theoretical dimensions to be measured (with appropriately named column headers). We have also found it to be worthwhile to insert a column with human-readable notes next to the item codes. This step adds some overhead, but---much like commenting code in general---is invaluable for debugging and analysis. You will need to remove that column before running the `M_matrix` through IRT-M, but there is also a spot in one of our analysis functions, described below, that can incorporate that information in your analysis.
+
+For this vignette, we are interested whether respondents to the 2020-2021 Eurobarometer reported feeling social, cultural, and/or economic threats. Depending on the data, you may need to do some additional processing at this step to ensure that each question coded is a binary response that has a single relationship to each dimension being coded. Many surveys present questions formatted into feeling thermometers, matrices, or with many nested sub-questions. These may not load straightforwardly into a single dimension. For example, Question 377 (qa1a_4) in our data asks for respondents' feelings about various current situations, compactly presented via a feeling thermometer for several sub-questions. In this example we will code the fourth, “How would you judge the current situation in [….] your personal job situation.” The respondent’s answer is coded as a categorical variable ranging from 1-4, with a response of 1 corresponding to “Very Good” and 4 corresponding to “Very Bad.”  We imagine that this question directly relates to the “economic threat” underlying dimension that we hypothesize, with the low end of the scale indicating feelings of economic threat and the high end suggesting no threat.
 
 Thus, we expand the levels of the question prompt to become four separate yes/no questions:
 
@@ -97,17 +103,17 @@ Thus, we expand the levels of the question prompt to become four separate yes/no
 + qa1a_4_3 Situation of personal job: rather bad
 + qa1a_4_4. Situation of personal job: very bad  
 
-Now we can use these prompts to code for our theoretical loading. In the M-Code matrix, we add a 1 to the column for the Economic Threat dimension for qa1a_4_3 and qa1a_4_4. Substantively, this means that responses to the qa1.4 with a value in the data of “3” or “4" are coded as individual respondents who likely score high on the “economic threat” dimension.  We can also code the inverse and give qa1a_4_1 and qa1a_4_2 the value of -1 on the M-Code matrix because we expect that survey respondents who answer that they feel that their personal job situation is “very good” or “rather good” likely do not score highly on economic threat. 
+Note that if you had followed our advice above, these items would have already been separated for you and would occur as rows of the spreadsheet you were using to specify your `M_matrix`. Also note that we do not have an omitted category in this coding. That is deliberate: even in a yes/no question, it is possible that responses of "yes" implicate latent theoretical dimensions differently from responses of "no". For example, a "yes" might suggest a particular action or thought process, but many actions or thought processes could be responsible for a "no".
 
-We repeat this process for each of the questions that we think relate (both positively and negatively) to our underlying theoretical frames and, if the outcome that we are interested in comes from the data, for questions that relate to the DV. This step is admittedly time consuming, but it is what allows us to make theoretical claims about the results. Fortunately we only need to code questions that are related to our underlying dimensions of interests.  
+Once the `M_matrix` contains a column of item codes for binary items, we can specify our theoretical loadings for those items. In the `M_matrix`, we add a `1` to the column for the Economic Threat dimension for qa1a_4_3 and qa1a_4_4. Substantively, this means that responses to the qa1a_4 with a value in the data of "3” or “4" are coded as individual respondents who likely would score high on the “economic threat” dimension.  We can also code the inverse and give qa1a_4_1 and qa1a_4_2 the value of `-1` in the `M_matrix` because we expect that survey respondents who answer that they feel that their personal job situation is “very good” or “rather good” likely would not score highly on economic threat. 
 
-Here we also highlight the ability of the IRT-M model to handle inductive theoretical exploration as well. As we coded the M-Matrix for the three dimensions of threat featured in our literature review, observed that the survey itself featured a number of questions about feelings of threat related to the ongoing Covid-19 pandemic. IRT-M easily supports inductive coding, and we added another dimension for the emergent category of "health threat."
+We repeat that process for each of the items that we think relate in any fashion (positively, negatively, or in an unclear way) to any of our underlying theoretical dimensions. Note that an item may relate in some way to no dimensions, one dimension, or more than one dimension, and that these relationships may be dependent or independent. Also note that if you think an item may relate but are not sure how exactly, the safest option is an `NA`.
 
-We thus end up with a `K x D` matrix, where `K` is the number of theoretically-salient binarized questions and `D` is the total number of underlying dimensions and number of outcomes in the data being coded.  The columns consist of the question codes, potentially a human-readable comment, and then a series of `{-1, 0, 1}` codes for whether the question relates to the dimension or outcome of interest.
+We can also use this same technique to discern latent outcome variables in the data, and include them among our latent dimensions. In other words, we can code items that relate to potential dependent variables as well, and have those dependent variables be additional dimensions in our `M_matrix`, as long as we are careful not to use the same items in measuring latent dimensions intended to be independent and dependent variables in the same correlational model later. This vignette additionally highlights the ability of the IRT-M model to handle inductive theoretical exploration. While coding the `M_matrix` for the three dimensions of threat noted above, we observed that the survey itself featured a number of questions about feelings of threat related to the ongoing Covid-19 pandemic. IRT-M easily supports inductive coding, and we added another dimension for the emergent category of "health threat."
 
-Fortunately, `K`, the number of binary questions to be hand coded, is likely to be substantially smaller than the overall number of dummy variables because we only need to code those questions that relate to the theory/outcome. We can ignore the rest, which will go into the model code as a 0. Finally, we if we want the model to impute unknown answers (such as did not answer/did not ask results) we can enter those into the `M-Code` matrix as “NA” and have the model impute values.
+The coding step is the only really time consuming step in the process, but it is what allows us to make theoretical claims about the substantive meaning of the latent dimensions. Fortunately, though the input data may have many items potentially to be coded, the actual number to code is likely to be substantially smaller than the total, as we only need to code those items that relate to the latent dimensions. We can ignore the rest, since the constrained IRT will not use any item which has loadings of 0 for every latent dimension.
 
-For convenience, we processed the codes in a separate tables, which we import into the script. We also reduce the M-Matrix to include only rows with loading information.
+For our vignette, we thus end up with a `K x (1+d)` matrix, where `K` is the number of theoretically-salient binarized questions and `d` is the combined number of underlying latent explanatory dimensions (4) and latent outcomes (2). For convenience, we processed the constraint coding in a separate table, which we import. We reduce its size by getting rid of rows of zeroes. The `MCodes` matrix that we important has question codes, item codes to match to the input data matrix, a column of human-readable comment, and then loadings for each item-dimension pair across six dimensions.
 
 ```{r load-mcodes, eval=T, echo=T, message=F, warning = F}
 load('./vdata/mcodes.rda')
@@ -115,15 +121,17 @@ load('./vdata/mcodes.rda')
 ## Only keep M-Codes with loadings or outcomes:
 MCodes$encoding <- rowSums(abs(MCodes[,4:9])) 
 MCodes <- MCodes[which(MCodes$encoding > 0),]
+
 ```
 
 ## Processing with IRT-M
 
-Once we have the data and M-Matrix identified (and have cleaned column names for consistency between M-Matrix and response data), we combine the data and created M Matrix. We merge and the data and loadings, resulting in a `K x R` matrix where `K` is the number of binary questions that we have codes for and R are the number of instrument responses.  This is accomplished by the following code snippet:
+The last step before we can start our analysis is to produce the `Y_in` and `M_matrix` data frames we need. To get these, we must ensure that the columns of `Y_in` (and their headers) match the rows of `M_matrix` (and the item codes in its first column). If we had followed our own advice, this would already be true, and if you have followed our advice, you can skip to the next step. Sometimes, however, one might have cause to code the constraint matrix before one hot encoding the input data, in which case some effort might be needed to ensure a match due to different column names produced by `dummy_cols`. In our case, as our data are synthetic and only a subset of the real data, we'll need to eliminate a bunch of items to ensure a match. We do that by merging the data and loadings, resulting in a `K x R` matrix where `K` is the number of binary questions that we have codes for and `R` is the number of instrument responses, before then reversing the combination. This is accomplished by the following code snippet:
 
 ```{r format-mcodes, eval=T, echo=T, message=F, warning = F}
 ## Produce a K-coded questions x R-responses data frame:
 
+d <- 6 #number of coded dimensions
 mcolumns <- c("QMap", "D1-Culture threat", 
               "D2-ReligionThreat", 
               "D3-Economic Threat",
@@ -138,193 +146,67 @@ combine <- MCodes[,mcolumns] %>% ## question codes and loadings
         type_convert() %>%
         rownames_to_column(var = "question"),
         by = c("QMap" = "question"  )
-    ) 
-```
+    )
 
-Observe that until this point, the code assumes that the data is in the form of a series of matricies where values are coded with a 0 or a 1. However, binary and categorical data is only a subset of the data that one might be interested in coding.  The most straightforward way to use the `IRT-M` model for continuous data is to convert the data into binary by implementing thresholds above/below which the data is assigned to a 1 or 0.
+M_matrix <- as.data.frame(combine[, 1:(d+1)])
 
-Next we create the `M-Matrix` by instantiating a `K x d x d` array of matrices. As above, `K` is the number of coded loading questions (number of theoretically-salient binary questions to be hand coded), and `d` is the number of coded dimensions (dimensions in the IRT-M model). 
-
-Finally, we rebuild the outcome data by ensuring that we have coded (or NA) M matricies for each question that remains in our data. At the end, we have two data structures for our analysis: the `M-Matrix` which is a list of diagonal matrices of dimension `d x d x K` coding loadings. The second object is a dataframe, `Y`, that has dimension `R` responses x `K` questions with coded (and `NA`) loadings.
-These are the objects that `IRT-M` will use for the estimation
-
-The M-Code data structure becomes our model’s “M-Matrix” (M) object. 
-The conversion produces a `dxd` matrix for each question that is 0 everywhere except for the diagonal, which is a 1 if that question loads on the dimension. If uncertain about the loading, use NA in the M-Code matrix, and the model will learn any loading during the estimation step.
-
-
-```{r prep-d, eval=T, echo=T, message=F, warning = FALSE}
-
-d <- 6 #number of coded dimensions
-loadings <- 2:7 ## columns in combine object with the loadings
-
-M <- array(NA, c(d, d, nrow(combine)))
-for (i in 1:nrow(combine)) {
-    M[,,i] <- diag(combine[i,
-                           loadings])
-}
-```
-
-We also create the final `Y` object for the IRTM estimator to use. Namely, we reverse the transposition of the `Y` dataframe and ensure that we have question names that are consistently formatted for the constraint matricies and the observed data. Finally, we save the `Y` and `M` object. Troubleshooting note: it is important that the `Y` object is numeric and a matrix. You can check the data types by running Dplyr’s `summary(response_object)` [or similar] and adjust the data type if needed. Reverse the transposition of the observations and ensure Y is numeric. Likewise, if you run the IRTM sampler and it returns the message `Error: Not compatible with requested type: [type=list; target=double]` you probaby either passed a non-numeric data type in or tried to pass a data frame instead of a matrix into the `Y` parameter.
-
-```{r prep-y, eval=T, echo=T, message=F, warning = FALSE}
 #Reverse the earlier transposition of the observations:
-Y <- combine[, (d+2):ncol(combine)]%>%
+Y_in <- combine[, (d+2):ncol(combine)]%>%
     t() %>%
     as.data.frame()
 
-Y <- as.data.frame(sapply(Y, as.numeric))
-
+Y_in <- as.data.frame(sapply(Y_in, as.numeric))
 
 ## Take the question names and 
 ## convert to column names
 
 question <- combine[,1] %>%
     as.data.frame() 
-colnames(Y) <- question[,1]
-
+colnames(Y_in) <- question[,1]
+rm(combine)
+rm(question)
 ```
 
-## Anchors
-
-Adding synthetic anchor points is mathematically optional for the purposes of identifying the model. However, it is substantively helpful to provide a clear substantive interpretation and consistent scale of the underlying space. The anchor points create artificial extreme points scales the endpoints and fixes the directions of the loadings. The function `pair_gen_anchors()`  generates these anchor points, taking the list of `M matrice`s and an integer value for the scale. The value of the integer is not important so long as it is positive-- it simply sets the length of the scale. `pair_gen_anchors()` returns a set of artificial respondents that anchor each of the extremes of our dimensions. 
-
-We finalize the anchors object by calling a small helper function, `anchors()`, which takes the pairs generated by `pair_gen_anchors()` and the `Y` observed values object.  We also create two objects to help us keep track of the introduced anchor points: `d_which_fix` and `d_theta_fix`. These record the index points of the synthetic extreme points that were created in `anchors()` and `pair_gen_anchors()` 
-
-Using the `anchors()` function is not necessary. The anchor points can be created with the `l2   and `Y` objects by following the code tha is within the function.
-
-
-```{r prep-anchors, eval=T, echo=T, message=F, warning = FALSE}
-
-## Generates anchor points,
-## Takes Y outcome matrix (Yexc)
-## and the ouput of pair_gen_anchors()
-
-anchors = function (genAnchorsPair, Yexc){                                                                                
-   ##  generate anchor points
-   Yfake = genAnchorsPair[[1]]
-   Yfake[is.na(Yfake)] = 9
-   colnames(Yfake) = names(Yexc)
-
-   theta_fake = genAnchorsPair[[2]]
-   Yall = as.matrix(rbind(Yfake, Yexc))
-   YList<- list("Yall" = Yall, "Yfake" = Yfake)
- return (YList)
-}
-
-l2 <- pair_gen_anchors(M,5)
-l3 <- anchors(l2, Y) 
-d_which_fix <- 1:nrow(l3$Yfake)
-d_theta_fix <- l2$theta_fake 
-```
-
-We might also want to double-check that the dimensions of the `Y` and `M` objects are in the format that the sampler will expect. First we want to ensure that the `Y` dataframe of observations is the same length as the `M` list of constraint matricies:
-
-```{r dim-check, eval=T, echo=T, message=F, warning = FALSE}
-
-if(dim(Y)[2] == dim(M)[3]){
-  print("Dimension check, passed!")
-  }else(
-    print("Check dimensions of Y and M!")
-  )
-```
-
-Second, we might want to ensure that the `M` list of constraints is a list of `dxd` matrices: 
-
-```{r dim-check2, eval=T, echo=T, message=F, warning = FALSE}
-if(dim(M)[1] == d &&
-   dim(M)[2]==d){
-  print("M and d dimension checks, passed!")
-}else(
-  print("M not dxd, check processing")
-)
-```
+Troubleshooting note: it is important that the `Y_in` object be numeric and a matrix. You can check the data types by running `dplyr`’s `summary(response_object)` [or similar] and adjust the data type if needed. Likewise, if you run the IRT-M sampler and it returns the message `Error: Not compatible with requested type: [type=list; target=double]` you probably either passed a non-numeric data type in or didn't pass a matrix to the `Y_in` argument.
 
 ##Running IRT-M
 
-Once we have the `M`, `Y`, and `anchors` objects we can input them into the IRT-M sampler. The sampler takes as additional parameters the number of dimensions (`d`), the identification of which points are the synthetic anchors, and parameters for desired burn-in and sampling iterations. We input these into `M_constrained_irt()`, which will return a list with the estimated `Theta`, `Lambda`, `b`, `Sigma`, and `Omega` values. `
+Running IRT-M
 
-The `Theta` object gives us the estimated distribution of the theoretical quantities of interest. This object is a responses x dimensions x number of simulations list. Substantively, this gives us a respondent-level estimate of their distribution over each of the theoretical dimensions. In order to derive population-level distributions of the quantity of interest, we will need to first reduce the dimensions. For simplicity, here we take the mean, using `apply(irt$theta, c(1,2), mean)` to produce an object that is the number of respondents x a number of dimensions: what we are looking for!. 
+Once we have the input data, `Y_in`, and the constraint matrix, `M_matrix`, we can now proceed to run IRT-M. The package provides a wrapper to make running the IRT-M sampler easier: the `irt_m()` function. It takes as arguments `Y_in` and `M_matrix`, as well as the number of latent dimensions, `d`. If no constraint matrix is provided, it runs an unconstrained IRT model. If `M_matrix` is provided and not `NULL`, the first two things `irt_m()` does is check to make sure that the column headers of `Y_in` match the item codes in the first column of `M_matrix`. It quits with an error if they do not. This is to ensure that the analyst is using the expected set of items in the computation. Then, `irt_m()` checks to make sure that the number of dimensions provided by the analyst (in `d`) is one fewer than the number of columns of `M_matrix`. After those checks, `irt_m()` instantiates a `K x d x d` array of diagonal matrices, built from `M_matrix`, that will be used for the sampler, and checks one more time to make sure that all the dimensions are correct, quitting with an error if not.
 
-The `Omega` object provides a covariance matrix for latent loadings, while the `Sigma` object is a covariance matrix for the latent factors. The `Lambda` object produces estimates of how each question loads on the underlying dimensions. The `b` output object is the baseline discrimination parameter for each item, and captures how well each item differentiates between the dimensions.
+Next, `irt_m` creates a set of `4d(d-1)` (for `d>1`) or `2` (for `d=1`) synthetic anchor points via the package function `pair_gen_anchors()`. Those points are mathematically optional for the purposes of identifying the model, but are substantively helpful in that they aid in providing a clear substantive interpretation and consistent scale of the underlying space. For every pair of latent dimensions, four "fake" respondents are created. Those respondents are assumed to have each possible combination of maximum/minimum positions along each dimension in the pair. Then, the `M_matrix` is used to infer how those fake respondents would have responded to each item. For example, a respondent with maximal levels of economic and cultural threat would respond `1` to items that were coded positively relative to both latent dimensions and `0` to items that were coded negatively relative to both latent dimensions. `irt_m()` adds these fake respondents to `Y_in` and then passes this new matrix, `Y_all`, to the sampler, which returns a list with the estimated `Theta`, `Lambda`, `b`, `Sigma`, and `Omega` posterior distributions for the model. By default, the fake respondents are placed at the beginning of `Y_all`; however, before returning its list, `irt_m()` removes the fake respondents, so that their presence does not hinder further analyses. It does this via two objects that help to keep track of the introduced anchor points: `d_which_fix` and `d_theta_fix`. Those record the indices of the synthetic extreme points that were created in `pair_gen_anchors()`.
 
-In this example, our anchors object is `l3` , where `l3$Yall` is a matrix that contains both the anchor points as well as our actual observed data. By default, anchors() places the anchor points first in the matrix. It is not necessary that the anchor points are first as long as you note where they are, because we will want to remove them for the analysis.
+In addition to `Y_in`, `M_matrix`, and `d`, `irt_m()` also has four additional arguments that may be used if desired. Three are technical variables related to the sampler. These specify the number of burn-in MCMC iterations (`nburn`, `Default=1000`), the number of sampling MCMC iterations (`nsamp`, `Default=1000`), and the number of thinning MCMC samples (`thin`, `Default=10`). The fourth is a logical variable (`learn_loadings`, `Default=FALSE`). IRT-M defaults to learning the covariance matrix of the latent dimensions, but setting this variable to `TRUE` has it instead learn the covariance matrix of the item loadings.
 
-Note that the following code will take about 60 minutes to run on a 32G Apple M1 Pro Macbook. 
+One does not need to use `irt_m()` if one does not want: one can directly use the sampler instead via the `M_constrained_irt()` function. Doing so requires creating the array of constraint matrices and anchor points oneself, as those need to be passed to the sampler as arguments.
+
+Moving to the output list of `irt_m()`, the `theta` array gives us samples from the posterior distribution of respondents' positions along each of the latent dimensions. This object is an array of dimension `N x d x nsamp/thin`, or number of respondents x number of latent dimensions x number of saved simulations. The `lambda` array, of dimension `K x d x nsamp/thin`,  contains samples from the posterior distribution of item loadings (discrimination parameters) for each item-dimension pair. The `b` output array, of dimension `K x nsamp/thin`,  contains samples from the posterior distribution of item difficulty parameters. The `Sigma` array, of dimension `d x d x nsamp/thin`,  contains samples from the posterior distribution of the covariance matrix of latent dimensions. It is only learned if `learn_loadings=FALSE`, which is the default. The `Omega` array, of dimension `d x d x nsamp/thin`,  contains samples from the posterior distribution of the covariance matrix of item loadings. It is only learned if `learn_loadings=TRUE`.
+
+Note that in the following code we've reduced the sampling settings a bit from the default, since the goal of the vignette is merely to be instructive and running quickly (less than a minute) is helpful for that. One can also increase to `nsamp=10000` and `nburn=2000` if one desires and has the time, though using the default thin=10 (or greater) is recommended in that case. Running an unconstrained IRT, useful when the analyst wants to evaluate the impact of coding decisions, can be done by instead using `M_matrix=NULL` or simply leaving it out.
+
 ```{r run-irtm, eval=T, echo=T, message=F, warning = FALSE}
 d=6
-nsamp= 10^3
-nburn=20^1
+irt <- irt_m(Y_in = Y_in, d = d, M_matrix = M_matrix, nsamp = 1000, nburn=20, thin=1)
 
-irt <- M_constrained_irt(l3$Yall,
-            d = d,
-            M= abs(M)*2,
-            theta_fix = d_theta_fix,
-            which_fix = d_which_fix,
-            nburn=nburn,
-            nsamp=nsamp,
-            thin=1,
-            learn_Omega=TRUE)
-
-```
-
-The `IRT-M` sampler can also run in an unconstrained mode without the coded M-Matrix or the fixed anchor points. This can be a useful in a number of circumstances, most notably if the analyst wants to evaluate the impact of their coding decisions. Running an unconstrained IRT model is straightforward: we simply do not provide the sampler with an M-Matrix or anchor points. The preparation of the observed data (the Y data object) is the same. As before, the Y object is a matrix of N responses by Q questions and d is the number of underlying dimensions that the model is seeking.
-
-The code below will run the sampler on the formatted data (it has a toy burn-in and sampler runtime; a real runtime would be closer to 10^3- 10^4 iterations with a 2,000 burn-in).
-
-```{r irt-unconst, eval=F, echo=T, message=F, warning = FALSE}
-d=6
-irt.unconstrained <- M_constrained_irt(Y=l3$Yall,
-            d=d,
-            nburn=100, 
-            nsamp=100,
-            thin=1,
-            learn_Omega=TRUE)
 ```
 
 ## Interpretation and Analysis
 
-One thing that we might want to do after estimating posterior distributions for our thetas of interest is to bring in additional variables from the data into our analysis. The IRT-M code itself does not keep unique ids for responses, however it retains the order of the data. This allows us to attach variables that we might want after deriving the `Theta` estimates.
+Interpretation and analysis
 
-The first thing to remember is that the IRT-M sampler returns a distribution of Theta estimates for each observation (such as survey respondent). In order to model the output, we first need a strategy to reduce the complexity of the objects. Here we will take the unit (respondent) mean for each of the underlying dimensions.
+We include samples from the posterior distribution as the analyst may desire to use them in capturing measurement uncertainty. For our purely descriptive purposes here, however, we'll want to take the means of the relevant posterior distributions. The most important mean we'll take, in order to produce a population-level distribution of positions on the latent dimensions, is that of the `theta` array. In `helpers_analysis.R`, we provide a function, `theta_av()`, to do this. It takes as input the `theta` array and returns an `N x d` dimensional matrix of estimated positions for each respondent, for each dimension.
 
-We do that by just averaging the samples over each dimension, for each survey respondent.
-On some machines you may be able to do this with a single apply call. We also want to remove the anchor points, so that they do not become part of the analysis:
-
-```{r entire, eval=T, echo=T}
-avgthetas <- apply(irt$theta, c(1,2), mean)
-
-## Removing anchor points:
-end_of_anchors <- dim(l2$Yfake)[1]+1
-avgthetas <- avgthetas[end_of_anchors:dim(avgthetas)[1],]
-```
-
-However, as the data becomes larger, one might need to break up the processing, such as by batch processing the averages (or using a function that is better optimized than `apply()` for large data). 
-
-Batch-processing is illustrated below. You want to run one of either the "whole" or the "batch" code snippets.
-
-```{r batch, eval=F, echo=T, message=F, warning = FALSE}
-
-avgthetas1 <- apply(irt$theta[1:15000, , ], c(1,2), mean)
-avgthetas2 <- apply(irt$theta[15001:30000, , ], c(1,2), mean)
-avgtheats3 <- apply(irt$theta[30001:38838, , ], c(1,2), mean)
-
-avgthetas <- rbind(avgthetas1,
-                   avgthetas2,
-                   avgtheats3)
-
-dim(avgthetas) #38838 x  6
-
-end.of.anchors <- dim(l2$Yfake)[1]+1
-avgthetas <- avgthetas[end.of.anchors:dim(avgthetas)[1],]
+```{r theta-average, eval=T, echo=T, message=F, warning = FALSE}
+avgthetas <- theta_av(irt$theta)
 
 ```
 
-Once we have the individual-level Thetas, we can use the output of IRT-M for both descriptives and inference. The code that follows presents several methods to visualize the distribution of Theta estimates with and without additional metadata. We can connect the estimated thetas to any observation-level metadata that we have access to. In the context of a survey, we can bring in both metadata and the survey instrument itself.
+We can now begin our analysis, and we start by bringing in additional variables from the original dataset into the analysis. The IRT-M code itself does not keep unique ids for responses; however, it retains the order of the rows of the input data. This allows one to attach other variables to the matrix of `theta` estimates, `avgthetas`. After bringing in the additional variables, we then specify all column names of this new data frame (`thetas'). This provides us a data frame that can be used for inferential and descriptive analysis.
 
-Here we read in a dataframe with demographic data from the survey, and bind that to the theta averages. 
-Troubleshooting note: you get an error message that `arguments imply differing number of rows` when you bind the estimated thetas to the underlying data, check to make sure that you have taken a summary statistic of the Thetas (here we used the mean) and that you have removed the synthetic anchor points.
+In the context of the synthetic survey that forms this vignette, we can bring in both metadata and survey instruments themselves. More broadly, we could connect the estimated thetas to any respondent-level metadata to which we had access, though that might require assigning codes to each respondent and merging data.
 
-`synth_idvs' is a table with a synthetic version of the independent variables from the underlying survey data. It takes the large survey dataset and extracts respondent-level questions that we're interested in for the visualizations: respondent unique identifies and country, their self-reported socioeconomic class, and their self-reported political orientation. In the following code, we import the data and attach it to our averaged user-level theta estimates. We also make the column names more human-readable. At this stage, we convert several of the metadata columns to factors, to facilitate the visualizations.
+Here we read in a data frame with demographic data from the survey, and bind that to the theta averages. `synth_idvs' is a table with a synthetic version of independent variables from the underlying survey data. It takes the large survey dataset and extracts respondent-level questions that we're interested in for the visualizations: respondent unique identifiers and country, their self-reported socioeconomic class, and their self-reported political orientation. In the following code, we import the data and attach it to our averaged respondent-level theta estimates. We also make the column names more human-readable. At this stage, we convert several of the metadata columns to factors, to facilitate the visualizations.
 
 We finish by calling R's `head()` method to preview the data.
 
@@ -345,17 +227,28 @@ thetas$class <- as.factor(thetas$class)
 thetas$polorient <- as.factor(thetas$polorient)
 
 head(thetas)
+
 ```
 
-### Visualizations:
+## Correlation matrices
 
-In additional inferential statistics, one might want to descriptively visualize the estimated latent dimensions. The following code presents examples of visualizations for the Theta estimations. We focus on the subgroup distribution visualizations presented in Morucci et al. 2024. 
+One difference between IRT-M and other conventional IRT approaches is that IRT-M assumes that the latent dimensions may be correlated, as is true for many theoretical concepts, and it learns the covariance matrix for the latent dimensions. It can be informative, as an initial descriptive analysis, to examine the correlation matrix between the latent dimensions. The function `dim_corr()` does that. It takes as input the array of covariance matrices output by IRT-M (either in `Sigma` or in `Omega`), averages their elements across samples, and computes and returns a correlation matrix of dimension `d x d`. The function also takes an optional vector input, `dim_names`, comprising names of each dimension. If that input is present and of length d, it adds corresponding row and column names to the correlation matrix before returning it.
 
-First, we load packages to assist in visualization. 
+```{r corr-matrixes, eval=T, echo=T, message=F, warning = FALSE}
 
-The first code is a simple ridge plot visualization of the distribution of the Theta values across all respondents. It is carried out by using the `melt()` call from the  `dplyr` library, which converts the data from wide to long format. Treating each `Theta` identifier as a factor makes it easy to use the `ggridges` library to visualize ridge plots for each Theta.
+#Compute correlation matrix of latent dimensions
+theta_names <- c("Culture Threat", "Religion Threat", "Economic Threat", "Health Threat", "Support Immigration", "Support EU")
+theta_corr <- dim_corr(irt$Sigma, theta_names)
+theta_corr
 
- 
+```
+
+## Visualizations
+
+At this point, the analyst will likely want to visualize distributions over each latent dimension, possibly subset by other variables. The IRT-M package makes this easy to do with the function `irt_vis()`. This function takes as input the number of latent dimensions, `d`, and a data frame (`Y_out`) constructed above, containing the average thetas plus any additional variables supplied by the analyst. It returns a ridge plot illustrating the population distribution over each latent dimension.  The function also takes two optional arguments. The first, `sub_name`, takes the name of another variable in `Y_out` and provides subplots for each level in the variable `sub_name`. The second, `out_file`, takes a file name; if one is provided, the function writes the plot to a file with that name and places it in the working directory. Both default to `NULL` if not provided. 
+
+The following code presents examples of visualizations for the latent dimension estimations. We focus on the subgroup distribution visualizations presented in Morucci et al. 2024. Earlier, we loaded packages to assist in visualization. `irt_vis()` makes use of a  `melt()` call from the  `dplyr` library, which converts the data from wide to long format. Treating each `theta` identifier as a factor makes it easy to use the `ggridges` library to visualize ridge plots for each latent dimension. Before running `irt_vis()`, we rename the columns for the latent dimensions of `thetas` (its first `d` columns), since we are plotting the constrained model only. We first call `irt_vis()` without using a `sub_name` variable to produce aggregate distributions. We do pass a name for an output file.
+
 ```{r viz-thetas, eval=T, echo=T, echo=T, message=F, warning = FALSE}
 library(ggplot2) #version: ggplot2_3.4.4 
 library(ggridges) #version: ggridges_0.5.6 
@@ -374,19 +267,6 @@ library(reshape2) #version: reshape2_1.4.4
 ## Theta5-OutcomeSupportImmigration
 ## Theta6-OutcomeSupportEU
 
-basedata <- melt(thetas[,1:6])
-
-colnames(basedata) <- c("Theta", "Value")
-basedata$Theta <- as.factor(basedata$Theta)
-
-basedata$Theta <- recode(basedata$Theta,
-                         "Theta1" = "Culture\nThreat",
-                         "Theta2" = "Religion\nThreat",
-                         "Theta3" = "Economic\nThreat",
-                         "Theta4" = "Health\nThreat",
-                         "Theta5" = "Support\nImmigration",
-                         "Theta6" = "Support\nEU")
-
 colnames(thetas)[1:6] <-  recode(colnames(thetas)[1:6],
                                  "Theta1" = "Culture Threat",
                                  "Theta2" = "Religion Threat",
@@ -395,113 +275,47 @@ colnames(thetas)[1:6] <-  recode(colnames(thetas)[1:6],
                                  "Theta5" = "Support Immigration",
                                  "Theta6" = "Support EU")
 
+#Save aggregate plot
+ggbase <- irt_vis(d = d, T_out = thetas, sub_name = NULL, out_file = "ebirtm-synth.png")
 
-
-ggbase <- ggplot(basedata,
-             aes(x=Value,
-                 y=Theta,
-                 fill=Theta))+
-  geom_density_ridges() +
-  scale_y_discrete(limits = rev(levels(basedata$Theta))) +
-  ggtitle('Posterior Distribution of Group Mean',
-          subtitle= "Thetas and Outcome (synthetic)") +
-  scale_fill_brewer(palette='Spectral') +
-  theme_bw()
-
-ggsave(ggbase, file="ebirtm-synth.png", width=5, height=5, units ="in", dpi=300)
 ```
 
 ![Visualization of estimated Theta distributions, Eurobarometer Data](ebirtm-synth.png){width=50%}
 
-
-Moreover, we can do more sophisticated visualizations. For example, we may have a theory in which we expect that the underlying dimensions we find will be moderated by demographic variables.  We can use the metadata that we retained for the visualizations. The following example code presents ridge plot visualizations for different levels of respondent-reported media trust patterns (column 17 in the data):
+Now we turn to more sophisticated visualizations. For example, we may have a theory in which we expect that the underlying dimensions we find will be moderated by demographic variables.  We can use the metadata that we retained for the visualizations. The following example code presents ridge plot visualizations for different levels of respondent-reported media trust patterns (column 17 in the data):
 
 ```{r medtrust-viz, eval=T, echo=T, message=F, warning = FALSE}
 
-mtcols = c('Culture Threat', 'Religion Threat', 
-         'Economic Threat', 'Health Threat', 'Support Immigration',
-         'Support EU', 'mediatrust')
-
-dat2 <- melt(thetas[,mtcols])
-
-colnames(dat2)[2] <- "Theta"
-
-ggmt <- ggplot(dat2,
-              aes(x=value,
-                  y=mediatrust,
-                  fill=mediatrust))+
-  geom_density_ridges(alpha=.5) +
-  ggtitle('Posterior Distribution of Group Mean',
-          subtitle= "Thetas and Outcome (synthetic)") +
-  labs(y="Levels of Media Trust",
-       x= "Theta Posterior Estimates")+
-  scale_y_discrete(limits=rev(levels(dat2$mediatrust)))+
-  facet_wrap(~Theta, ncol=2)+
-  scale_fill_brewer(palette='Spectral') +
-  theme_bw()
-
-ggsave(ggmt, file="theta-media-synth.png", width=5, height=5, units ="in", dpi=300)
+#Save plot subset by media trust
+ggmt <- irt_vis(d = d, T_out = thetas, sub_name = "mediatrust", out_file = "theta-media-synth.png")
 
 ```
 
 ![Visualization of the distribution of Thetas by media trust.](theta-media-synth.png){width=50%}
 
-### Lambda
+## Lambda
 
-After estimating Theta distributions, one might turn to questions of validation. The IRT-M model produces metadata that can help with this task. Notably, the `Lambda` object records how closely associated each question is to the outcome dimensions. 
+After estimating and exploring the theta distributions, one might turn to questions of validation. The IRT-M model produces output that can help with this task: the `lambda` array records how closely associated each item is to each latent dimension, including any outcome latent dimensions. 
 
-The `Lambda` object is an array where the first dimension is the number of one-hot encoded survey questions, the second dimension is the number of underlying dimensions, and the third dimensions is the number of thinned samples produced by the IRT-M sampler.
+IRT-M comes with a utility, `get_lambdas()`, to make using the information in that array a bit easier. It takes three inputs: the `lambda` array from the IRT model, a vector of item names, and a vector of latent dimension names. The utility returns a list with two objects, both of which are data frames. The first, `av_lams`,  contains averages (across samples) of item discrimination parameters. The second, `high_lams`, is a `K x d` matrix, with each column an ordered list of the items (by name) that most strongly load on each latent dimension. The utility also accepts an optional argument, `item_elab`, which is a vector of item descriptions. If that argument is not null (its default), then the utility appends those descriptions to the item names in its output.
 
-We can unpack this object for each underlying dimension. 
-
-
-First, we subset the `lambda` object. In this example, we are interested in `\Theta_{1}`, which we coded as questions that we believed related to a feeling of abstract cultural threat. The first row of code pulls out the fifth dimension from the array, producing an dataframe with the sampler's distribution for for each coded question in the test instrument.  In order to analyze the lambda loadings, we need to summarize the per-question samples (via the `rowwise()` call). We do that here via the mean and variance, although the summary is customizable.  After summarizing the per-question sample distribution, we keep only the columns with the `mean` and `variance`.
+For our vignette, `lambda` is an array where the first dimension is the number of one-hot encoded survey questions, the second dimension is the number of latent dimensions, and the third dimension is the number of thinned samples produced by the IRT-M sampler. Our MCodes matrix also contains substantive notes for each item. The code below returns useful information about model loadings.
 
 ```{r lambdas, eval=TRUE, echo=T, message=F, warning = FALSE}
 
-theta_id <-  1 ## culture threat
-lambda_weight <- as.data.frame(irt$lambda[,theta_id,]) %>%
-   rowwise() %>%
-   mutate(mean = mean(c_across(starts_with("V")), na.rm = TRUE),
-          var = var(c_across(starts_with("V")), na.rm = TRUE)) %>%
-  select(mean, var) %>%
-  ungroup() 
+#Extract relevant substantive notes and create data frame with them and item codes
+filtered_MCodes <- MCodes[MCodes[[2]] %in% M_matrix$QMap, , drop = FALSE]
+M_df <- data.frame(QMap = M_matrix$QMap, sn = filtered_MCodes[[3]])
+
+#Explore item loadings
+lambdas <- get_lambdas(irt$lambda, item_names = M_df$QMap, dim_names = theta_names, item_elab = M_df$sn)
+average_lambdas <- lambdas[[1]]
+highest_lambdas <- lambdas[[2]]
+average_lambdas
+highest_lambdas
 
 ```
 
-The result is a dataframe with the mean and variance of the `lambda` distribution of the selected underlying dimension identified for each of our one-hot encoded questions. At this point, it is convenient to go to the data object that lists the question names for our items, so that we can attach the human-readable information. Above, we called the object `question`, and it is a `M x 1` vector with the question names that went into the sampler.
-
-Before extracting metadata with question names, it is also worthwhile to make sure that the length of the data object with the question metadata matches the length of the lambda summary object:
-
-```{r lambda-check, eval=T, echo=T, message=F, warning = FALSE}
-## Verify that the data objects have the same length:
-dim(question)[1] == dim(lambda_weight)[1]
-```
-
-In this case, we also coded the `MCodes` object with a column that provides substantive notes on what the question was asking. We can extract those columns and attach them to the `lambda` summary:
-
-```{r mcodes-lambda-t1, eval=T, echo=T, message=F, warning = FALSE}
-
-q2 <- question %>%
-  left_join(MCodes[,c("QMap", "SubstantiveNotes")], 
-            by = "QMap",
-            multiple = "all")
-
-t_spotlight <- as.data.frame(cbind(question= as.character(q2$QMap), 
-                             substantive = as.character(q2$SubstantiveNotes),
-                              mean= round(as.numeric(lambda_weight$mean),3),
-                              variance= round(as.numeric(lambda_weight$variance),3),
-                              theta= theta_id)) %>%
-  arrange(desc(mean))
-
-print(head(t_spotlight))
-rm(q2)
-```
-
-Once we have this data, we can model the questions and lambda loadings to check for internal validity of the model. In this case, we can learn that the question which loads most heavily on our `\Theta_{1}` ("culture threat") is `qa6b_9_2` ("Do not trust national parliament"), closely followed by `qa6b_5_2` ("do not trust national public admin"), and several other questions that indicate a lack of trust in national institutions. This helps to reassure us that the sampler is, indeed, finding a theoretically meaningful underlying dimension. 
-
-We can repeat this analysis for additional dimensions to gain insight into the questions that contribute the most to the estimation of the dimension. For example, doing so for `\Theta_{5}` ("support for immigation") in the data that we have been working with, we discover that the largest `lambda` loadings are on `qb7_2_2` (Against: Stronger EU border control)  and `qb7_1_1` (For: A common EU asylum system). This can reassure us that coding and sampler are loading on meaningful questions for the hypothesized dimensions.
 
 
-## Dependencies:
-The IRT-M package uses functions developed in other libraries. Note that the `Rfortran` dependency requires `gcc` to be installed on mac. Some machines running Mac OS encounter a well-known problem with R finding `gfortran`. The steps for solving this are documented online, and typically entail a combination of installing `Xcode`, using `homebrew` to install `gcc`, and/or installing `gfortran` directly from `Github`. 
+

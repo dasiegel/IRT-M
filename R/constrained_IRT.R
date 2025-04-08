@@ -1,8 +1,8 @@
 #' @title M_constrained_irt
 #' @description This function allows you to run the IRT model.
-#' @param Y a N x K matrix of responses given by N respondents to K questions. Can contain missing values.
+#' @param Y a N x K matrix of responses given by N respondents to K items. Can contain missing values.
 #' @param d an integer specifying the number of latent dimensions.
-#' @param M a list of K dxd matrices (default=NULL).
+#' @param M a list of K d x d matrices (default=NULL).
 #' @param theta_fix a matrix with d columns containing the values of the latent dimensions for respondents that have pre-specified latent factors.
 #' @param which_fix a vector containing the indices of the respondents for which latent factors have been fixed.
 #' @param nburn an integer specifying the number of burn-in MCMC iterations.
@@ -10,11 +10,11 @@
 #' @param thin an integer specifying the number of thinning MCMC samples.
 #' @param learn_Sigma a Boolean specifying whether a covariance matrix for the latent factors should be learned.
 #' @param learn_Omega a Boolean specifying whether a covariance matrix for the latent loadings should be learned.
-#' @param hyperparameters a list of hyperparamters for the model.
-#' @param display_progress a  boolean specifying whether a progress bar should be displayed.
+#' @param hyperparameters a list of hyperparameters for the model.
+#' @param display_progress a Boolean specifying whether a progress bar should be displayed.
 #' @return A list containing the following components:
-#'   \item{alpha}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
-#'   \item{beta}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
+#'   \item{lambda}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
+#'   \item{b}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
 #'   \item{theta}{An array of dimension (N x d x nsamp/thin) containing posterior samples of respondent latent trait values.}
 #'   \item{Sigma}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of latent traits (only if learn_Sigma=TRUE).}
 #'   \item{Omega}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of item loadings (only if learn_Omega=TRUE).}
@@ -32,7 +32,7 @@
 
 M_constrained_irt = function(Y, d, M=NULL, theta_fix=NULL, which_fix=NULL,
                              nburn=1000, nsamp=1000, thin=10,
-                             learn_Sigma=FALSE, learn_Omega=FALSE,
+                             learn_Sigma=TRUE, learn_Omega=FALSE,
                              hyperparameters = list(),
                              display_progress=TRUE){
 
@@ -70,7 +70,10 @@ M_constrained_irt = function(Y, d, M=NULL, theta_fix=NULL, which_fix=NULL,
   ubs = matrix(NA, K, d)
   for (k in 1:K){
     for (d in 1:d){
-      if(M[d,d,k] == 0){
+      if(is.na(M[d,d,k])){
+        lbs[k, d] = -Inf
+        ubs[k, d] = Inf
+      }else if(M[d,d,k] == 0){
         lbs[k, d] = 0
         ubs[k, d] = 0
       }else if (M[d,d,k] == 1){

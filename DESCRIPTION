@@ -28,18 +28,15 @@ Depends:
     utils,
     RcppProgress,
     RcppDist,
+    ggplot2,
     R (>= 3.5.0)
 Suggests: 
     knitr,
-    reshape2,
     rmarkdown,
     testthat (>= 3.0.0),
     RColorBrewer,
-    dplyr,
     fastDummies,
-    ggplot2,
     ggrepel,
-    ggridges,
     tidyverse,
     spelling
 VignetteBuilder: knitr
@@ -53,5 +50,9 @@ Imports:
     coda,
     Rcpp,
     RcppArmadillo,
+    ggridges,
+    rlang,
+    dplyr,
+    reshape2,
 Config/testthat/edition: 3
 Language: en-US

@@ -13,18 +13,18 @@ M_constrained_irt(
   nburn = 1000,
   nsamp = 1000,
   thin = 10,
-  learn_Sigma = FALSE,
+  learn_Sigma = TRUE,
   learn_Omega = FALSE,
   hyperparameters = list(),
   display_progress = TRUE
 )
 }
 \arguments{
-\item{Y}{a N x K matrix of responses given by N respondents to K questions. Can contain missing values.}
+\item{Y}{a N x K matrix of responses given by N respondents to K items. Can contain missing values.}
 
 \item{d}{an integer specifying the number of latent dimensions.}
 
-\item{M}{a list of K dxd matrices (default=NULL).}
+\item{M}{a list of K d x d matrices (default=NULL).}
 
 \item{theta_fix}{a matrix with d columns containing the values of the latent dimensions for respondents that have pre-specified latent factors.}
 
@@ -40,14 +40,14 @@ M_constrained_irt(
 
 \item{learn_Omega}{a Boolean specifying whether a covariance matrix for the latent loadings should be learned.}
 
-\item{hyperparameters}{a list of hyperparamters for the model.}
+\item{hyperparameters}{a list of hyperparameters for the model.}
 
-\item{display_progress}{a  boolean specifying whether a progress bar should be displayed.}
+\item{display_progress}{a Boolean specifying whether a progress bar should be displayed.}
 }
 \value{
 A list containing the following components:
-\item{alpha}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
-\item{beta}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
+\item{lambda}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
+\item{b}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
 \item{theta}{An array of dimension (N x d x nsamp/thin) containing posterior samples of respondent latent trait values.}
 \item{Sigma}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of latent traits (only if learn_Sigma=TRUE).}
 \item{Omega}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of item loadings (only if learn_Omega=TRUE).}

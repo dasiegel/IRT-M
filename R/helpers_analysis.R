@@ -34,7 +34,7 @@ theta_av <- function(theta_array) {
 #' @param T_out N x (d+z) data frame with average latent dimensions in first d columns
 #' @param sub_name The name of a variable in T_out used for levels in the plot (Default = NULL)
 #' @param out_file Output file name for plot (Default = NULL)
-#' @return irt_dist_plt Returns the plot object
+#' #' @return A ggplot2 object containing density ridge plots of the latent dimensions. When sub_name is NULL, the plot shows the distribution of each theta dimension. When sub_name is provided, the plot shows distributions faceted by theta dimension and grouped by the specified variable.
 #' @importFrom reshape2 melt
 #' @import ggplot2
 #' @importFrom dplyr mutate
@@ -185,7 +185,7 @@ get_lambdas <- function(lambda_array, item_names, dim_names, item_elab=NULL) {
 #' Returns a correlation matrix with correlations between the dimensions.
 #' @param cov_array An array of dimension (d x d x nsamp/thin) containing posterior samples of the relevant covariance matrix.
 #' @param dim_names Vector of dimension names.
-#' @return A corresponding correlation data frame with column and row headers.
+#' @return A data frame containing the correlation matrix derived from t input covariance array, with rows and columns labeled according to dim_names (if provided). Each cell represents the correlation between the corresponding dimensions.
 #' @export
 #'
 

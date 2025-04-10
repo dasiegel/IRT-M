@@ -13,10 +13,8 @@ irt_vis(d, T_out, sub_name = NULL, out_file = NULL)
 
 \item{sub_name}{The name of a variable in T_out used for levels in the plot (Default = NULL)}
 
-\item{out_file}{Output file name for plot (Default = NULL)}
-}
-\value{
-irt_dist_plt Returns the plot object
+\item{out_file}{Output file name for plot (Default = NULL)
+#' @return A ggplot2 object containing density ridge plots of the latent dimensions. When sub_name is NULL, the plot shows the distribution of each theta dimension. When sub_name is provided, the plot shows distributions faceted by theta dimension and grouped by the specified variable.}
 }
 \description{
 Takes as input the number of latent dimensions (d),

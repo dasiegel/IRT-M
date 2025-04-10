@@ -5,7 +5,7 @@ Meta
 
 # Session Data files
 .RData
-.DS_Store
+*.DS_Store
 *.*~
 
 # User-specific files

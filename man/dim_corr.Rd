@@ -12,7 +12,7 @@ dim_corr(cov_array, dim_names = NULL)
 \item{dim_names}{Vector of dimension names.}
 }
 \value{
-A corresponding correlation data frame with column and row headers.
+A data frame containing the correlation matrix derived from t input covariance array, with rows and columns labeled according to dim_names (if provided). Each cell represents the correlation between the corresponding dimensions.
 }
 \description{
 Takes as input either the Sigma covariance matrix, if the user has learned the factor covariance,

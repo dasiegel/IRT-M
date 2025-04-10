@@ -17,8 +17,9 @@ Authors@R:
 	   email = "david.siegel@duke.edu",
            comment = c(ORCID = "0000-0003-1619-6119")))
 Description: IRT-M is a semi-supervised approach based on Bayesian Item Response Theory
-	     that produces theoretically identified underlying dimensions from input data and a constraints matrix. 
-	     For more details, see Morucci et al \(2024\), "Measurement That Matches Theory: Theory-Driven Identification in Item Response Theory Models" 
+	     that produces theoretically identified underlying dimensions from input data
+	     and a constraints matrix. For more details, see Morucci et al (2024),
+	     "Measurement That Matches Theory: Theory-Driven Identification in Item Response Theory Models" 
 	     <https://www.cambridge.org/core/journals/american-political-science-review/article/measurement-that-matches-theory-theorydriven-identification-in-item-response-theory-models/395DA1DFE3DCD7B866DC053D7554A30B>
 License: MIT + file LICENSE
 Encoding: UTF-8

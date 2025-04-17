@@ -61,9 +61,9 @@ M_constrained_irt = function(Y, d, M=NULL, theta_fix=NULL, which_fix=NULL,
     mu = hyperparameters[['mu']]
 
   if(is.null(M)){
-    M = array(0, c(d, d, K))
+    M = array(NA, c(d, d, K))
     for(k in 1:K)
-      M[,,k] = diag(d) * 2
+      M[,,k] = diag(d)
   }
 
   lbs = matrix(NA, K, d)

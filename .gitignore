@@ -1,6 +1,6 @@
 Meta
 # History files
-.Rhistory
+*.Rhistory
 .Rapp.history
 
 # Session Data files

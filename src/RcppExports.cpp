@@ -35,9 +35,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_constrained_irt_continuous
+List sample_constrained_irt_continuous(const arma::mat& Y, const int& d, const int& nu0, const arma::mat& S0, const arma::mat& lbs, const arma::mat& ubs, const arma::uvec& ind, const arma::mat& theta_fix, const int& nburn, const int& nsamp, const int& thin, const bool& learn_Sigma, const bool& learn_Omega, const bool& display_progress);
+RcppExport SEXP _IRTM_sample_constrained_irt_continuous(SEXP YSEXP, SEXP dSEXP, SEXP nu0SEXP, SEXP S0SEXP, SEXP lbsSEXP, SEXP ubsSEXP, SEXP indSEXP, SEXP theta_fixSEXP, SEXP nburnSEXP, SEXP nsampSEXP, SEXP thinSEXP, SEXP learn_SigmaSEXP, SEXP learn_OmegaSEXP, SEXP display_progressSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const int& >::type d(dSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nu0(nu0SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type S0(S0SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type lbs(lbsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type ubs(ubsSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type ind(indSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type theta_fix(theta_fixSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nburn(nburnSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nsamp(nsampSEXP);
+    Rcpp::traits::input_parameter< const int& >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type learn_Sigma(learn_SigmaSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type learn_Omega(learn_OmegaSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type display_progress(display_progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_constrained_irt_continuous(Y, d, nu0, S0, lbs, ubs, ind, theta_fix, nburn, nsamp, thin, learn_Sigma, learn_Omega, display_progress));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_IRTM_sample_constrained_irt", (DL_FUNC) &_IRTM_sample_constrained_irt, 14},
+    {"_IRTM_sample_constrained_irt_continuous", (DL_FUNC) &_IRTM_sample_constrained_irt_continuous, 14},
     {NULL, NULL, 0}
 };
 

@@ -5,3 +5,7 @@ sample_constrained_irt <- function(Y, d, nu0, S0, lbs, ubs, ind, theta_fix, nbur
     .Call(`_IRTM_sample_constrained_irt`, Y, d, nu0, S0, lbs, ubs, ind, theta_fix, nburn, nsamp, thin, learn_Sigma, learn_Omega, display_progress)
 }
 
+sample_constrained_irt_continuous <- function(Y, d, nu0, S0, lbs, ubs, ind, theta_fix, nburn, nsamp, thin, learn_Sigma, learn_Omega, display_progress) {
+    .Call(`_IRTM_sample_constrained_irt_continuous`, Y, d, nu0, S0, lbs, ubs, ind, theta_fix, nburn, nsamp, thin, learn_Sigma, learn_Omega, display_progress)
+}
+

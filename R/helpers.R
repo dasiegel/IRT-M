@@ -25,18 +25,23 @@ mse <- function(ytrue, ypred, aggregate=TRUE, root=FALSE){
 #' @description Runs Geweke tests to assess MCMC convergence
 #' @param THETA Matrix of parameter estimates from IRTM
 #' @return Proportion of values that fail the Geweke convergence test (p < 0.05) for each parameter
-#' @importFrom coda geweke.diag
 #' @importFrom stats pnorm
 #' @export
 
 Geweke_convergence <- function(THETA){
+  ## load coda
+  if (!requireNamespace("coda", quietly = TRUE)) {
+    stop("Package 'coda' is required for Geweke diagnostics. Please install it.",
+         call. = FALSE)
+  }
+
   N <- dim(THETA)[1]
   d <- dim(THETA)[2]
   count <- c(0,0,0)
   P <- matrix(NA, N-6, 3)
   for(i in 7:N){
     for(j in 1:3){
-      z <- geweke.diag(THETA[i,j,], frac1=0.1, frac2=0.5)
+      z <- coda::geweke.diag(THETA[i,j,], frac1=0.1, frac2=0.5)
       p <- 2*pnorm(-abs(z$z))
       P[i-6,j] <- p
       if(p < 0.05){
@@ -86,12 +91,18 @@ theta_lambda_traceplots <- function(irt, i=NULL, k=NULL){
   D = ncol(theta)
   par(mfcol=c(D, 3))
   for(d in 1:D){
-    plot(1:n, theta[i, d, ], xlab = 'sample', ylab=paste('theta', d))
+    plot(1:n, theta[i, d, ],
+         xlab = 'sample',
+         ylab=paste('theta', d))
   }
   for(d in 1:D){
-    plot(1:n, lambda[k, d, ], xlab = 'sample', ylab=paste('lambda', d))
+    plot(1:n, lambda[k, d, ],
+         xlab = 'sample',
+         ylab=paste('lambda', d))
   }
   for(d in 1:D){
-    plot(1:n, theta[i, d, ] * lambda[k, d, ], xlab = 'sample', ylab=paste('theta * lambda', d))
+    plot(1:n, theta[i, d, ] * lambda[k, d, ],
+         xlab = 'sample',
+         ylab=paste('theta * lambda', d))
   }
 }

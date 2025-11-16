@@ -208,3 +208,78 @@ List sample_constrained_irt(const arma::mat& Y, const int& d,
 
 }
 
+// [[Rcpp::export]]
+List sample_constrained_irt_continuous(const arma::mat& Y, const int& d,
+                                       const int& nu0, const arma::mat& S0,
+                                       const arma::mat& lbs, const arma::mat& ubs,
+                                       const arma::uvec& ind, const arma::mat& theta_fix,
+                                       const int& nburn, const int& nsamp, const int& thin,
+                                       const bool& learn_Sigma, const bool& learn_Omega,
+                                       const bool& display_progress){
+
+  // Replicate binary setup:
+  int N = Y.n_rows;
+  int K = Y.n_cols;
+  int S = nburn + nsamp;
+
+  // --- Initialize parameters ---
+  // 🔹 For continuous data, Z starts as Y
+    // and is not updated via truncated normals
+  mat Z = Y;
+  vec b(K, fill::zeros);
+  mat theta(N, d, fill::zeros);
+  mat lambda(K, d, fill::zeros);
+  mat Sigma(d, d, fill::eye);
+  mat Omega(d, d, fill::eye);
+  double sigma_sqr = 25;
+
+  // --- Storage ---
+  int nstore = floor(nsamp / thin);
+  cube THETA(N, d, nstore, fill::zeros);
+  cube LAMBDA(K, d, nstore, fill::zeros);
+  mat B(K, nstore, fill::zeros);
+  cube SIGMA(d, d, nstore, fill::zeros);
+  cube OMEGA(d, d, nstore, fill::zeros);
+  int r = 0;
+
+  // --- Fix anchor points in theta ---
+  if(ind.n_elem > 0)
+    theta.rows(ind - 1) = theta_fix;
+
+  // --- Gibbs  ---
+  Progress pbar(S, display_progress);
+  for(int s = 0; s < S; s++){
+    if (Progress::check_abort())
+      return List::create();
+    pbar.increment();
+
+    //  For continuous Y,
+    // Z is treated as the observed continuous outcome
+
+    update_b(b, N, K, sigma_sqr, theta, lambda, Z);
+    update_lambda(lambda, K, theta, lbs, ubs, b, Omega, Z);
+    update_theta(theta, N, d, lambda, b, Z, Sigma, ind - 1);
+
+    if(learn_Sigma){
+      update_Sigma(Sigma, N, nu0, theta, S0);
+    } else if (learn_Omega){
+      update_Omega(Omega, K, nu0, lambda, S0);
+    }
+
+    // --- Store draws ---
+    if((s >= nburn) && ((s - nburn) % thin == 0)) {
+      THETA.slice(r)  = theta;
+      LAMBDA.slice(r) = lambda;
+      B.col(r)        = b;
+      SIGMA.slice(r)  = Sigma;
+      OMEGA.slice(r)  = Omega;
+      r++;
+    }
+  }
+
+  return List::create(Named("theta")  = THETA,
+                      Named("lambda") = LAMBDA,
+                      Named("b")      = B,
+                      Named("Sigma")  = SIGMA,
+                      Named("Omega")  = OMEGA);
+}

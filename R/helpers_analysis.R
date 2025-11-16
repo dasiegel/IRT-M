@@ -35,73 +35,120 @@ theta_av <- function(theta_array) {
 #' @param sub_name The name of a variable in T_out used for levels in the plot (Default = NULL)
 #' @param out_file Output file name for plot (Default = NULL)
 #' @return A ggplot2 object containing density ridge plots of the latent dimensions. When sub_name is NULL, the plot shows the distribution of each theta dimension. When sub_name is provided, the plot shows distributions faceted by theta dimension and grouped by the specified variable.
-#' @importFrom reshape2 melt
-#' @import ggplot2
-#' @importFrom dplyr mutate
-#' @importFrom ggridges geom_density_ridges
-#' @importFrom rlang sym
 #' @export
 #'
 
 irt_vis <- function(d, T_out, sub_name=NULL, out_file=NULL) {
 
-  #initialize plot output
+  # Require optional dependencies
+  ## either load or prompt to download
+  if (!requireNamespace("ggplot2", quietly = TRUE))
+    stop("Package 'ggplot2' is required for irt_vis(). Please install it.", call. = FALSE)
+  if (!requireNamespace("ggridges", quietly = TRUE))
+    stop("Package 'ggridges' is required for irt_vis(). Please install it.", call. = FALSE)
+  if (!requireNamespace("reshape2", quietly = TRUE))
+    stop("Package 'reshape2' is required for irt_vis(). Please install it.", call. = FALSE)
+  if (!requireNamespace("dplyr", quietly = TRUE))
+    stop("Package 'dplyr' is required for irt_vis(). Please install it.", call. = FALSE)
+  if (!requireNamespace("rlang", quietly = TRUE))
+    stop("Package 'rlang' is required for irt_vis(). Please install it.", call. = FALSE)
+
+
+  # initialize plot output
   irtv <- NULL
   theta_names <- colnames(T_out[1:d])
-  Value<-NULL
-  Theta<-NULL
-    if (is.null(sub_name)) {   #If desired output is aggregated
-    basedata <- melt(T_out[,1:d])
-    if (d==1) { #When there is only one latent dimension
+  Value <- NULL
+  Theta <- NULL
+
+  if (is.null(sub_name)) {   # Aggregated output
+    basedata <- reshape2::melt(T_out[, 1:d])
+
+    if (d == 1) { # One latent dimension
       colnames(basedata) <- c("Value")
-      irtv <- ggplot(mutate(basedata,Theta = theta_names[1]),  # Replace Theta with a constant value
-                     aes(x = Value,
-                         y = Theta,
-                         fill = Theta)) +
-        geom_density_ridges() +
-        scale_y_discrete(limits = rev(levels(factor(theta_names[1])))) +
-        ggtitle('Posterior Distribution of Group Mean',
-                subtitle = theta_names[1]) +
-        scale_fill_brewer(palette = 'Spectral') +
-        theme_bw()
-    } else if (d>1) { #If there is more than one latent dimension
+
+      irtv <- ggplot2::ggplot(
+        dplyr::mutate(basedata, Theta = theta_names[1]),
+        ggplot2::aes(
+          x = Value,
+          y = Theta,
+          fill = Theta
+        )) +
+        ggridges::geom_density_ridges() +
+        ggplot2::scale_y_discrete(
+          limits = rev(levels(factor(theta_names[1])))
+        ) +
+        ggplot2::ggtitle(
+          'Posterior Distribution of Group Mean',
+          subtitle = theta_names[1]
+        ) +
+        ggplot2::scale_fill_brewer(palette = 'Spectral') +
+        ggplot2::theme_bw()
+
+    } else if (d > 1) { # More than one latent dimension
       colnames(basedata) <- c("Theta", "Value")
-      irtv <- ggplot(basedata,
-                         aes(x=Value,
-                             y=Theta,
-                             fill=Theta))+
-        geom_density_ridges() +
-        scale_y_discrete(limits = rev(levels(basedata$Theta))) +
-        ggtitle('Posterior Distribution of Group Mean',
-                subtitle= "Thetas") +
-        scale_fill_brewer(palette='Spectral') +
-        theme_bw()
+
+      irtv <- ggplot2::ggplot(
+        basedata,
+        ggplot2::aes(
+          x = Value,
+          y = Theta,
+          fill = Theta
+        )) +
+        ggridges::geom_density_ridges() +
+        ggplot2::scale_y_discrete(
+          limits = rev(levels(basedata$Theta))
+        ) +
+        ggplot2::ggtitle(
+          'Posterior Distribution of Group Mean',
+          subtitle = "Thetas"
+        ) +
+        ggplot2::scale_fill_brewer(palette = 'Spectral') +
+        ggplot2::theme_bw()
+
     } else {
       stop("You have less than one latent dimension specified.")
     }
-  } else { #Output is disaggregated by variable sub_name, which should be a factor
 
-      mt_cols <- c(theta_names,sub_name)
-      dat2 <- melt(T_out[,mt_cols])
-      colnames(dat2) <- c(sub_name, "Theta", "Value")
-      irtv <- ggplot(dat2,
-                          aes(x=Value,
-                              y=!!sym(sub_name),
-                              fill=!!sym(sub_name)))+
-        geom_density_ridges(alpha=.5) +
-        ggtitle('Posterior Distribution of Group Mean',
-                subtitle= "Thetas") +
-        labs(y=sub_name,
-             x= "Theta Posterior Estimates")+
-        scale_y_discrete(limits=rev(levels(dat2$sub_name)))+
-        facet_wrap(~Theta, ncol=2)+
-        scale_fill_brewer(palette='Spectral') +
-        theme_bw()
-    }
+  } else {
+    # Output disaggregated by variable sub_name
+    mt_cols <- c(theta_names, sub_name)
+    dat2 <- reshape2::melt(T_out[, mt_cols])
+    colnames(dat2) <- c(sub_name, "Theta", "Value")
 
-  #Print plot to file if desired by user
+    irtv <- ggplot2::ggplot(
+      dat2,
+      ggplot2::aes(
+        x = Value,
+        y = !!rlang::sym(sub_name),
+        fill = !!rlang::sym(sub_name)
+      )) +
+      ggridges::geom_density_ridges(alpha = 0.5) +
+      ggplot2::ggtitle(
+        'Posterior Distribution of Group Mean',
+        subtitle = "Thetas"
+      ) +
+      ggplot2::labs(
+        y = sub_name,
+        x = "Theta Posterior Estimates"
+      ) +
+      ggplot2::scale_y_discrete(
+        limits = rev(levels(dat2[[sub_name]]))
+      ) +
+      ggplot2::facet_wrap(~ Theta, ncol = 2) +
+      ggplot2::scale_fill_brewer(palette = 'Spectral') +
+      ggplot2::theme_bw()
+  }
+
+  # Print plot to file if desired
   if (!is.null(out_file)) {
-    ggsave(irtv, filename=out_file, width=5, height=5, units ="in", dpi=300)
+    ggplot2::ggsave(
+      irtv,
+      filename = out_file,
+      width = 5,
+      height = 5,
+      units = "in",
+      dpi = 300
+    )
   }
   return(irtv)
 }

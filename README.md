@@ -89,3 +89,11 @@ brew reinstall gcc
 brew reinstall gfortran
 ```
 - Update to the current release of gfortan by going to the CRAN distribution page: https://cran.r-project.org/bin/macosx/tools/
+
+## Update Notes
+
+Our first major update (in progress November 2025) extends the sampler to allow continuous input variables.
+
+The IRTM package now allows direct estimation of natively binary and continuous data.
+Ordinal and categorical variables can be incorporated through One Hot Encoding. 
+Although less precise than native support for ordinal/categorical variables, this minimizes computational overhead and allows IRTM to maintain its speed.

@@ -1,45 +1,103 @@
 #' @title irt_m
-#' @description This function is a wrapper to enable easier use of the IRT-M model in M_constrained_irt.
-#' It takes as input two data frames: a N x K data frame, and a K x (1+d) M-matrix.
-#' The first column of the M-matrix should contain item identifiers that match the K column headers in
-#' the N x K data frame. If they do not match, the wrapper exits with an error.
-#' The wrapper computes anchors, Y_all (merged data and anchors), and a list of diagonal M-Matrices.
-#' The second two are used as inputs to M_constrained_irt, which runs the sampler. Also used as input are
-#' nburn (Default = 10^3), nsamp (Default = 10^3), thin (Default = 1), and
-#' learn_loadings (Default = FALSE). This last one defaults to having the sampler learn factor covariances.
-#' If set to true, it will learn loading covariances instead.
-#' Finally, the wrapper removes the anchors and returns an irt list.
-#' @param Y_in a N x K matrix of responses given by N respondents to K items. Can contain missing values. Column names should match first column in M_matrix.
-#' @param d an integer specifying the number of latent dimensions.
-#' @param M_matrix a K x (d+1) matrix of theoretical codings used to constrain IRT-M  (default=NULL). First column should match column names in Y_in.
-#' @param nburn an integer specifying the number of burn-in MCMC iterations.
-#' @param nsamp an integer specifying the number of sampling MCMC iterations.
-#' @param thin an integer specifying the number of thinning MCMC samples.
-#' @param learn_loadings a Boolean specifying whether a covariance matrix for the latent loadings should be learned, instead of the default covariance matrix for latent dimensions.
-#' @return A list containing the following components:
-#'   \item{lambda}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
-#'   \item{b}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
-#'   \item{theta}{An array of dimension (N x d x nsamp/thin) containing posterior samples of respondent latent trait values.}
-#'   \item{Sigma}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of latent traits (only if learn_Sigma=TRUE).}
-#'   \item{Omega}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of item loadings (only if learn_Omega=TRUE).}
+#' @description
+#' A wrapper that simplifies the use of the IRT-M model implemented in
+#' `M_constrained_irt_family()`. It checks consistency between the respondent-by-item
+#' data and an optional constraint matrix, constructs synthetic anchors when needed,
+#' prepares the combined dataset, runs the sampler, removes anchors, and returns
+#' posterior samples.
+#'
+#' @details
+#' **Inputs.**
+#' - `Y_in` must be an `N × K` matrix or data frame with item identifiers matching
+#'   the first column of `M_matrix` (if provided).
+#' - `M_matrix` must be a `K × (d+1)` matrix with the first column giving item IDs and
+#'   the remaining columns specifying diagonal constraint entries.
+#'
+#' **Family argument.**
+#' The `family` argument selects the observation model:
+#' - `"binary"` (default)
+#' - `"continuous"`
+#'
+#' **Anchors.**
+#' When constraints are provided (`M_matrix` not `NULL`), synthetic anchor responses
+#' are generated via `pair_gen_anchors()` to fix the latent trait scale. These anchors
+#' are included during sampling but removed from the returned posterior samples.
+#'
+#' **Learning covariance structures.**
+#' If `learn_loadings = FALSE` (default), the sampler learns the covariance matrix
+#' of latent traits (`Sigma`).
+#' If `learn_loadings = TRUE`, the sampler instead learns the covariance matrix
+#' of item loadings (`Omega`). These options are mutually exclusive.
+#'
+#' @param Y_in
+#' A numeric `N × K` response matrix or data frame, with rows representing
+#' respondents and columns items. May contain `NA`. Column names must match the
+#' first column of `M_matrix` (if supplied).
+#'
+#' @param d
+#' Integer. Number of latent dimensions.
+#'
+#' @param M_matrix
+#' Optional `K × (d+1)` constraint matrix.
+#' Column 1: item identifiers matching `colnames(Y_in)`.
+#' Columns 2:(d+1): diagonal constraint entries for each dimension.
+#' Default: `NULL`.
+#'
+#' @param family
+#' Character string specifying the response family. One of:
+#' - `"binary"`
+#' - `"continuous"`
+#' Default: `"binary"`.
+#'
+#' @param nburn
+#' Number of burn-in MCMC iterations. Default: `1000`.
+#'
+#' @param nsamp
+#' Number of post–burn-in MCMC iterations. Default: `1000`.
+#'
+#' @param thin
+#' Thinning interval for MCMC samples. Default: `1`.
+#'
+#' @param learn_loadings
+#' Logical. If `FALSE`, learn covariance of latent traits (`Sigma`).
+#' If `TRUE`, learn covariance of item loadings (`Omega`).
+#' These cannot be learned simultaneously.
+#'
+#' @return
+#' A list containing posterior draws:
+#' \itemize{
+#'   \item{\code{lambda}}{A \((K × d × nsamp/thin)\) array of item discrimination samples.}
+#'   \item{\code{b}}{A \((K × nsamp/thin)\) matrix of item difficulty samples.}
+#'   \item{\code{theta}}{A \((N × d × nsamp/thin)\) array of respondent latent trait samples (anchors removed).}
+#'   \item{\code{Sigma}}{A \((d × d × nsamp/thin)\) array of latent trait covariance matrices
+#'       (returned when \code{learn_loadings = FALSE}).}
+#'   \item{\code{Omega}}{A \((d × d × nsamp/thin)\) array of item-loading covariance matrices
+#'       (returned when \code{learn_loadings = TRUE}).}
+#' }
+#'
 #' @import RcppProgress
 #' @importFrom tmvtnorm rtmvnorm
 #' @importFrom truncnorm rtruncnorm
 #' @importFrom RcppArmadillo armadillo_version
 #' @importFrom RcppDist bayeslm
-#' @export
-
-## usethis namespace: start
 #' @useDynLib IRTM, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
-## usethis namespace: end
+#'
+#' @export
+
 
 irt_m = function(Y_in, d, M_matrix=NULL,
+                 family = c("binary", "continuous"),  ##continuous update
                  nburn=1000, nsamp=1000, thin=1,
                  learn_loadings=FALSE){
 
+  family <- match.arg(family)  # switches between binary and continuous
+
   d_which_fix = NULL
   d_theta_fix = NULL
+
+  Yfake = NULL #no Yfake, but object will exist if no M-matrix
+
   if (!is.null(M_matrix)) {
       #First check to ensure that the K column headers in the input data Y_in
       #match the elements in the first column of the constraint matrix M_matrix
@@ -89,7 +147,7 @@ irt_m = function(Y_in, d, M_matrix=NULL,
 
   #Run constrained_IRT
   #Default to learning factor covariance unless user sets learn_loadings to TRUE.
-  #Note: these ae mutually exclusive: one can't learn both.
+  #Note: these are mutually exclusive: one can't learn both.
   #Setting both learn_Sigma and learn_Omega to TRUE defaults to learning factor covariance.
   learnS <- TRUE
   learnO <- FALSE
@@ -98,16 +156,20 @@ irt_m = function(Y_in, d, M_matrix=NULL,
     learnO <- TRUE
   }
 
-  #Run IRT-M
-  irt <- M_constrained_irt(Y_all,
-                           d = d,
-                           M= M,
-                           theta_fix = d_theta_fix,
-                           which_fix = d_which_fix,
-                           nburn=nburn,
-                           nsamp=nsamp,
-                           thin=thin,
-                           learn_Sigma=learnS, learn_Omega=learnO)
+  #Run IRT-M, either binary or continuous
+  irt <- M_constrained_irt_family(
+    Y_all,
+    d = d,
+    family = family,
+    M = M,
+    theta_fix = d_theta_fix,
+    which_fix = d_which_fix,
+    nburn = nburn,
+    nsamp = nsamp,
+    thin = thin,
+    learn_Sigma = learnS,
+    learn_Omega = learnO
+  )
 
   if (!is.null(Yfake)) {
     #Remove anchors before returning results

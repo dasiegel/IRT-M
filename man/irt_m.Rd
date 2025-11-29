@@ -8,6 +8,7 @@ irt_m(
   Y_in,
   d,
   M_matrix = NULL,
+  family = c("binary", "continuous"),
   nburn = 1000,
   nsamp = 1000,
   thin = 1,
@@ -15,37 +16,77 @@ irt_m(
 )
 }
 \arguments{
-\item{Y_in}{a N x K matrix of responses given by N respondents to K items. Can contain missing values. Column names should match first column in M_matrix.}
+\item{Y_in}{A numeric \verb{N × K} response matrix or data frame, with rows representing
+respondents and columns items. May contain \code{NA}. Column names must match the
+first column of \code{M_matrix} (if supplied).}
 
-\item{d}{an integer specifying the number of latent dimensions.}
+\item{d}{Integer. Number of latent dimensions.}
 
-\item{M_matrix}{a K x (d+1) matrix of theoretical codings used to constrain IRT-M  (default=NULL). First column should match column names in Y_in.}
+\item{M_matrix}{Optional \verb{K × (d+1)} constraint matrix.
+Column 1: item identifiers matching \code{colnames(Y_in)}.
+Columns 2:(d+1): diagonal constraint entries for each dimension.
+Default: \code{NULL}.}
 
-\item{nburn}{an integer specifying the number of burn-in MCMC iterations.}
+\item{family}{Character string specifying the response family. One of:
+\itemize{
+\item \code{"binary"}
+\item \code{"continuous"}
+Default: \code{"binary"}.
+}}
 
-\item{nsamp}{an integer specifying the number of sampling MCMC iterations.}
+\item{nburn}{Number of burn-in MCMC iterations. Default: \code{1000}.}
 
-\item{thin}{an integer specifying the number of thinning MCMC samples.}
+\item{nsamp}{Number of post–burn-in MCMC iterations. Default: \code{1000}.}
 
-\item{learn_loadings}{a Boolean specifying whether a covariance matrix for the latent loadings should be learned, instead of the default covariance matrix for latent dimensions.}
+\item{thin}{Thinning interval for MCMC samples. Default: \code{1}.}
+
+\item{learn_loadings}{Logical. If \code{FALSE}, learn covariance of latent traits (\code{Sigma}).
+If \code{TRUE}, learn covariance of item loadings (\code{Omega}).
+These cannot be learned simultaneously.}
 }
 \value{
-A list containing the following components:
-\item{lambda}{An array of dimension (K x d x nsamp/thin) containing posterior samples of item discrimination parameters.}
-\item{b}{A matrix of dimension (K x nsamp/thin) containing posterior samples of item difficulty parameters.}
-\item{theta}{An array of dimension (N x d x nsamp/thin) containing posterior samples of respondent latent trait values.}
-\item{Sigma}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of latent traits (only if learn_Sigma=TRUE).}
-\item{Omega}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of item loadings (only if learn_Omega=TRUE).}
+A list containing posterior draws:
+\itemize{
+\item{\code{lambda}}{A \((K × d × nsamp/thin)\) array of item discrimination samples.}
+\item{\code{b}}{A \((K × nsamp/thin)\) matrix of item difficulty samples.}
+\item{\code{theta}}{A \((N × d × nsamp/thin)\) array of respondent latent trait samples (anchors removed).}
+\item{\code{Sigma}}{A \((d × d × nsamp/thin)\) array of latent trait covariance matrices
+(returned when \code{learn_loadings = FALSE}).}
+\item{\code{Omega}}{A \((d × d × nsamp/thin)\) array of item-loading covariance matrices
+(returned when \code{learn_loadings = TRUE}).}
+}
 }
 \description{
-This function is a wrapper to enable easier use of the IRT-M model in M_constrained_irt.
-It takes as input two data frames: a N x K data frame, and a K x (1+d) M-matrix.
-The first column of the M-matrix should contain item identifiers that match the K column headers in
-the N x K data frame. If they do not match, the wrapper exits with an error.
-The wrapper computes anchors, Y_all (merged data and anchors), and a list of diagonal M-Matrices.
-The second two are used as inputs to M_constrained_irt, which runs the sampler. Also used as input are
-nburn (Default = 10^3), nsamp (Default = 10^3), thin (Default = 1), and
-learn_loadings (Default = FALSE). This last one defaults to having the sampler learn factor covariances.
-If set to true, it will learn loading covariances instead.
-Finally, the wrapper removes the anchors and returns an irt list.
+A wrapper that simplifies the use of the IRT-M model implemented in
+\code{M_constrained_irt_family()}. It checks consistency between the respondent-by-item
+data and an optional constraint matrix, constructs synthetic anchors when needed,
+prepares the combined dataset, runs the sampler, removes anchors, and returns
+posterior samples.
+}
+\details{
+\strong{Inputs.}
+\itemize{
+\item \code{Y_in} must be an \verb{N × K} matrix or data frame with item identifiers matching
+the first column of \code{M_matrix} (if provided).
+\item \code{M_matrix} must be a \verb{K × (d+1)} matrix with the first column giving item IDs and
+the remaining columns specifying diagonal constraint entries.
+}
+
+\strong{Family argument.}
+The \code{family} argument selects the observation model:
+\itemize{
+\item \code{"binary"} (default)
+\item \code{"continuous"}
+}
+
+\strong{Anchors.}
+When constraints are provided (\code{M_matrix} not \code{NULL}), synthetic anchor responses
+are generated via \code{pair_gen_anchors()} to fix the latent trait scale. These anchors
+are included during sampling but removed from the returned posterior samples.
+
+\strong{Learning covariance structures.}
+If \code{learn_loadings = FALSE} (default), the sampler learns the covariance matrix
+of latent traits (\code{Sigma}).
+If \code{learn_loadings = TRUE}, the sampler instead learns the covariance matrix
+of item loadings (\code{Omega}). These options are mutually exclusive.
 }

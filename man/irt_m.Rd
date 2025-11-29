@@ -17,7 +17,7 @@ irt_m(
 }
 \arguments{
 \item{Y_in}{A numeric \verb{N × K} response matrix or data frame, with rows representing
-respondents and columns items. May contain \code{NA}. Column names must match the
+respondents and columns items. Column names must match the
 first column of \code{M_matrix} (if supplied).}
 
 \item{d}{Integer. Number of latent dimensions.}

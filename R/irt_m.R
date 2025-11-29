@@ -31,7 +31,7 @@
 #'
 #' @param Y_in
 #' A numeric `N × K` response matrix or data frame, with rows representing
-#' respondents and columns items. May contain `NA`. Column names must match the
+#' respondents and columns items. Column names must match the
 #' first column of `M_matrix` (if supplied).
 #'
 #' @param d
@@ -90,6 +90,21 @@ irt_m = function(Y_in, d, M_matrix=NULL,
                  family = c("binary", "continuous"),  ##continuous update
                  nburn=1000, nsamp=1000, thin=1,
                  learn_loadings=FALSE){
+
+  ## Input validation: raise a problem if there are missing values:
+  if (anyNA(Y_in)) {
+    stop("IRT-M does not support missing values. Impute or remove NAs before fitting the model.")
+  }
+
+  ## Flag the data is identified as binary, but values are not 0, 1, NA
+  if (family == "binary" && !all(Y_in %in% c(0, 1))) {
+    stop("Binary IRT-M requires Y_in values in {0, 1}. Use family='continuous' for continuous outcomes.")
+  }
+
+  ## flag if data identified as continuous, but seem to be binary:
+  if (family == "continuous" && all(Y_in %in% c(0, 1))) {
+    stop("Data appear to be binary (values in {0, 1}) but family='continuous' was specified. Use family='binary' for dichotomous outcomes.")
+  }
 
   family <- match.arg(family)  # switches between binary and continuous
 

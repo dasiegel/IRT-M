@@ -62,3 +62,17 @@ test_that("M_constrained_irt_family dispatches correctly", {
   expect_equal(dim(fit1$lambda), dim(fit2$lambda))
   expect_equal(dim(fit1$b), dim(fit2$b))
 })
+
+# tests/testthat/test-continuous.R
+test_that("continuous IRT-M runs without error", {
+  set.seed(123)
+  Y <- matrix(rnorm(50*10), 50, 10)
+  M_mat <- cbind(item = paste0("V", 1:10),
+                 dim1 = rep(c(1, -1), 5))
+  colnames(Y) <- paste0("V", 1:10)
+
+  expect_no_error(
+    irt_m(Y, d = 1, M_matrix = M_mat, family = "continuous",
+          nburn = 10, nsamp = 10, thin = 1)
+  )
+})

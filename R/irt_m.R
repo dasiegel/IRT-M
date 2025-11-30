@@ -14,8 +14,8 @@
 #'   the remaining columns specifying diagonal constraint entries.
 #'
 #' **Family argument.**
-#' The `family` argument selects the observation model:
-#' - `"binary"` (default)
+#' The `family` argument selects the observation model or, if given NULL, infers the family from:
+#' - `"binary"`
 #' - `"continuous"`
 #'
 #' **Anchors.**
@@ -86,110 +86,170 @@
 #' @export
 
 
-irt_m = function(Y_in, d, M_matrix=NULL,
-                 family = c("binary", "continuous"),  ##continuous update
-                 nburn=1000, nsamp=1000, thin=1,
-                 learn_loadings=FALSE){
+irt_m <- function(Y_in, d, M_matrix = NULL,
+                  family = NULL,
+                  nburn = 1000,
+                  nsamp = 1000,
+                  thin = 1,
+                  learn_loadings = FALSE) {
 
-  ## Input validation: raise a problem if there are missing values:
-  if (anyNA(Y_in)) {
-    stop("IRT-M does not support missing values. Impute or remove NAs before fitting the model.")
+  ## 1. Coerce and validate Y --------------------------------------------------
+
+  # Coerce to numeric matrix
+  Y <- as.matrix(Y_in)
+  if (!is.numeric(Y)) {
+    stop("Y_in must be numeric or coercible to a numeric matrix.")
   }
 
-  ## Flag the data is identified as binary, but values are not 0, 1, NA
-  if (family == "binary" && !all(Y_in %in% c(0, 1))) {
-    stop("Binary IRT-M requires Y_in values in {0, 1}. Use family='continuous' for continuous outcomes.")
+  N <- nrow(Y)
+  K <- ncol(Y)
+
+  # Require column names if there's a M-Matrix
+
+  if (!is.null(M_matrix) && is.null(colnames(Y))) {
+    stop("Y_in must have column names when M_matrix is supplied.")
   }
 
-  ## flag if data identified as continuous, but seem to be binary:
-  if (family == "continuous" && all(Y_in %in% c(0, 1))) {
-    stop("Data appear to be binary (values in {0, 1}) but family='continuous' was specified. Use family='binary' for dichotomous outcomes.")
+  # No missing values allowed
+  if (anyNA(Y)) {
+    stop("IRT-M does not support missing values in Y_in. ",
+         "Impute or remove NAs before fitting the model.")
   }
 
-  family <- match.arg(family)  # switches between binary and continuous
+  ## 2. Handle family argument (binary vs continuous) --------------------------
 
-  d_which_fix = NULL
-  d_theta_fix = NULL
+  if (is.null(family)) {
+    # Infer: if *all* values are 0/1 treat as binary, else continuous
+    if (all(Y %in% c(0, 1))) {
+      family <- "binary"
+    } else {
+      family <- "continuous"
+    }
+  }
+  family <- match.arg(family, choices = c("binary", "continuous"))
 
-  Yfake = NULL #no Yfake, but object will exist if no M-matrix
+  # Consistency checks between data and family
+  if (family == "binary" && !all(Y %in% c(0, 1))) {
+    stop("Binary IRT-M requires Y_in values in {0, 1}. ",
+         "Use family='continuous' for continuous outcomes.")
+  }
+
+  if (family == "continuous" && all(Y %in% c(0, 1))) {
+    stop("Data appear to be binary (values in {0, 1}) but family='continuous' was specified. ",
+         "Use family='binary' for dichotomous outcomes.")
+  }
+
+  ## 3. Defaults for constraints / anchors -------------------------------------
+
+  d_which_fix <- NULL
+  d_theta_fix <- NULL
+  Yfake       <- NULL
+  M_array     <- NULL  # 3D constraint array, if used
+
+  ## 4. If M_matrix is supplied, validate and construct M + anchors ------------
 
   if (!is.null(M_matrix)) {
-      #First check to ensure that the K column headers in the input data Y_in
-      #match the elements in the first column of the constraint matrix M_matrix
-      #exit if not
-      if(length(setdiff(colnames(Y_in), M_matrix[,1]))!=0) {
-        stop("Item labels do not match. Please address inconsistency before running again.")
-      }
-      #Next check to ensure that M has d+1 dimensions if not NULL.
-      if (!is.null(M_matrix) && dim(M_matrix)[2]!=(d+1)) {
-        stop("The number of latent dimensions does not match the number coded in M_matrix.")
-      }
 
-    #Create array of M-matrices
-    M <- array(NA, c(d, d, ncol(Y_in)))
-    #if only one dimension, force a matrix to be constructed
-    if (d==1) {
-      for (i in 1:ncol(Y_in)) {
-        M[,,i] <- matrix(M_matrix[i,2], nrow = 1, ncol = 1)
-      }
-    }
-    else {
-      codings <- 2:(d+1)
-      for (i in 1:ncol(Y_in)) {
-        M[,,i] <- diag(M_matrix[i,codings])
-      }
+    # Coerce to data.frame to avoid factor quirks
+    M_df <- as.data.frame(M_matrix, stringsAsFactors = FALSE)
+
+    # Check dimensions: first col is item ID, next d cols are constraints
+    if (ncol(M_df) != (d + 1L)) {
+      stop("M_matrix must have d+1 columns (item ID + d constraint columns).")
     }
 
-    #Check dimensions of created objects and exit if incorrect for sampler
-    if(dim(Y_in)[2] != dim(M)[3]) {
-      stop("Dimensions of Data and Constraint do not match.")
-    }
-    if(dim(M)[1] != d || dim(M)[2]!=d) {
-      stop("M is not dxd; check processing")
+    item_ids <- as.character(M_df[[1]])
+
+    # Ensure same set of item IDs as Y columns
+    if (!setequal(item_ids, colnames(Y))) {
+      stop("Item labels do not match between Y_in and M_matrix[,1]. ",
+           "They must contain the same set of item identifiers.")
     }
 
-    #First, compute synthetic anchor points using IRT-M's built-in function
-    #The value of 5 is chosen to be an extreme value, but 5 is arbitrary
-    l2 <- pair_gen_anchors(M,5)
-    Yfake <- l2[[1]]
-    colnames(Yfake) <- names(Y_in)
-    theta_fake <- l2[[2]]
-    #Second, create a data matrix for the sampler that contains the fake data as well.
-    Y_all = as.matrix(rbind(Yfake, Y_in))
-    d_which_fix <- 1:nrow(Yfake)
+    # Reorder M_matrix rows to align with colnames(Y)
+    ord <- match(colnames(Y), item_ids)
+    if (anyNA(ord)) {
+      stop("Some column names of Y_in are not found in M_matrix[,1]. ",
+           "Please check item identifiers.")
+    }
+    M_df <- M_df[ord, , drop = FALSE]
+
+    # Build 3D M array: d x d x K
+    M_array <- array(NA_real_, dim = c(d, d, K))
+    if (d == 1L) {
+      # Single-dimension: each item has a 1x1 "matrix"
+      M_array[1, 1, ] <- as.numeric(M_df[[2]])
+    } else {
+      codings <- 2:(d + 1L)
+      for (j in seq_len(K)) {
+        M_array[, , j] <- diag(as.numeric(M_df[j, codings]))
+      }
+    }
+
+    # Sanity check dimensions
+    if (dim(M_array)[3] != K) {
+      stop("Internal error: constructed M array does not match number of items.")
+    }
+
+    # Generate synthetic anchor responses + fixed thetas
+    # The '5' here is the usual extreme value used by IRT-M; arbitrary but conventional
+    l2          <- pair_gen_anchors(M_array, 5)
+    Yfake       <- l2[[1]]
+    theta_fake  <- l2[[2]]
+
+    # Ensure Yfake has same number of items and named columns
+    if (ncol(Yfake) != K) {
+      stop("pair_gen_anchors() returned anchors with incorrect number of items.")
+    }
+    colnames(Yfake) <- colnames(Y)
+
+    # Stack anchors above real data for the sampler
+    Y_all       <- rbind(Yfake, Y)
+    d_which_fix <- seq_len(nrow(Yfake))
     d_theta_fix <- theta_fake
+
+  } else {
+    # No constraints: no anchors, just pass observed data
+    Y_all   <- Y
+    M_array <- NULL
   }
 
-  #Run constrained_IRT
-  #Default to learning factor covariance unless user sets learn_loadings to TRUE.
-  #Note: these are mutually exclusive: one can't learn both.
-  #Setting both learn_Sigma and learn_Omega to TRUE defaults to learning factor covariance.
-  learnS <- TRUE
-  learnO <- FALSE
-  if (learn_loadings==TRUE) {
-    learnS <- FALSE
-    learnO <- TRUE
+  # Final sanity check before passing to C++ sampler
+  if (anyNA(Y_all)) {
+    stop("Internal error: Y_all contains NA values after processing. ",
+         "This should not happen. Please report this bug with a reproducible example.")
   }
 
-  #Run IRT-M, either binary or continuous
+  ## 5. Decide what covariance structure to learn ------------------------------
+
+  # Default: learn Sigma (latent trait covariance).
+  # If learn_loadings=TRUE, learn Omega instead.
+
+  learn_Sigma <- !learn_loadings
+  learn_Omega <-  learn_loadings
+
+  ## 6. Call core sampler via family-dispatch wrapper --------------------------
+
   irt <- M_constrained_irt_family(
     Y_all,
-    d = d,
-    family = family,
-    M = M,
-    theta_fix = d_theta_fix,
-    which_fix = d_which_fix,
-    nburn = nburn,
-    nsamp = nsamp,
-    thin = thin,
-    learn_Sigma = learnS,
-    learn_Omega = learnO
+    d           = d,
+    family      = family,
+    M           = M_array,
+    theta_fix   = d_theta_fix,
+    which_fix   = d_which_fix,
+    nburn       = nburn,
+    nsamp       = nsamp,
+    thin        = thin,
+    learn_Sigma = learn_Sigma,
+    learn_Omega = learn_Omega
   )
 
+  ## 7. Remove anchors from theta before returning -----------------------------
+
   if (!is.null(Yfake)) {
-    #Remove anchors before returning results
-    anchors_end <- dim(Yfake)[1]
-    irt$theta <- irt$theta[-(1:anchors_end), , , drop=FALSE]
+    n_anchor <- nrow(Yfake)
+    irt$theta <- irt$theta[-seq_len(n_anchor), , , drop = FALSE]
   }
+
   return(irt)
 }

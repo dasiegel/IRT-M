@@ -8,7 +8,7 @@ irt_m(
   Y_in,
   d,
   M_matrix = NULL,
-  family = c("binary", "continuous"),
+  family = NULL,
   nburn = 1000,
   nsamp = 1000,
   thin = 1,
@@ -73,9 +73,9 @@ the remaining columns specifying diagonal constraint entries.
 }
 
 \strong{Family argument.}
-The \code{family} argument selects the observation model:
+The \code{family} argument selects the observation model or, if given NULL, infers the family from:
 \itemize{
-\item \code{"binary"} (default)
+\item \code{"binary"}
 \item \code{"continuous"}
 }
 

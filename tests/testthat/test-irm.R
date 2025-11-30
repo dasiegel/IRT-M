@@ -1,79 +1,94 @@
-library(tidyverse) # version: tidyverse_2.0.0
-library(dplyr) #version: dplyr_1.1.4
-library(stats) # version: stats4
-library(fastDummies) # version: fastDummies_1.7.3
-library(reshape2) #version: reshape2_1.4.4
 library(testthat)
+library(IRTM)
 
-## IRT-M estimation:
-#devtools::install_github("dasiegel/IRT-M")
-library(IRTM) #version 1.00
+## Test 1: Continuous data
 
-test_that("Test Case One: Normal Use", {
+test_that("continuous IRT-M runs and returns correct shapes", {
+  set.seed(112925)
+  N <- 25
+  K <- 4
+  d <- 2
 
-  synth_questions <- NULL  # Initialize to avoid R CMD check notes
+  Y <- matrix(rnorm(N*K), N, K)
+  colnames(Y) <- paste0("V", 1:K)
 
-  load("synth_questions.rda")
-  ## Convert numeric ordinal responses to factors
+  # Valid M matrix: K rows, (d+1) columns
+  M_mat <- data.frame(
+    item = paste0("V", 1:K),
+    dim1 = c(1, -1, 1, -1),
+    dim2 = c(1, 1, -1, -1),
+    stringsAsFactors = FALSE
+  )
 
-  ebdatsub <- lapply(ebdatsynth[,], factor) ## that's a list now
+  fit <- irt_m(Y, d = d, M_matrix = M_mat,
+               family = "continuous",
+               nburn = 20, nsamp = 20, thin = 5)
 
-  ## converts the list back into a dataframe:
-  Y <- dummy_cols(.data=ebdatsub,
-                  remove_selected_columns=TRUE)
+  expect_type(fit, "list")
+  expect_equal(dim(fit$theta),  c(N, d, 4))
+  expect_equal(dim(fit$lambda), c(K, d, 4))
+  expect_equal(dim(fit$b),      c(K, 4))
+})
 
-  ## remove the .data that dummy_cols adds to the column names
-  colnames(Y) <- gsub(".data.", '', colnames(Y))
+## Test 2: irtm works with binary data:
 
-  ## remove the data objects:
-  rm(ebdatsub)
-  rm(ebdatsynth)
+test_that("binary IRT-M runs with M_matrix", {
+  set.seed(6889)
+  N <- 30
+  K <- 5
+  d <- 1
 
-  load('mcodes.rda')
+  # Generate true binary data
+  theta <- rnorm(N)
+  lambda <- rnorm(K)
+  b <- rnorm(K)
+  prob <- pnorm(outer(theta, lambda) - b)
+  Y <- matrix(rbinom(N*K, 1, prob), N, K)
+  colnames(Y) <- paste0("Q", 1:K)
 
-  ## Only keep M-Codes with loadings or outcomes:
-  MCodes$encoding <- rowSums(abs(MCodes[,4:9]))
-  MCodes <- MCodes[which(MCodes$encoding > 0),]
+  M_mat <- data.frame(
+    item = paste0("Q", 1:K),
+    dim1 = rep(1, K)
+  )
 
-  d <- 6 #number of coded dimensions
-  mcolumns <- c("QMap", "D1-Culture threat",
-                "D2-ReligionThreat",
-                "D3-Economic Threat",
-                "D4-HealthThreat",
-                "O1-OutcomeSupportImmigration", "O2-OutcomeSupportEU")
+  fit <- irt_m(Y, d = d, M_matrix = M_mat,
+               family = "binary",
+               nburn = 10, nsamp = 10, thin = 1)
 
-  combine <- MCodes[,mcolumns] %>% ## question codes and loadings
-    inner_join(
-      Y %>%
-        t() %>%
-        as.data.frame(stringsAsFactors = FALSE) %>%
-        type_convert() %>%
-        rownames_to_column(var = "question"),
-      by = c("QMap" = "question"  )
-    )
+  expect_equal(dim(fit$theta), c(N, 1, 10))
+  expect_equal(dim(fit$lambda), c(K, 1, 10))
+})
 
-  M_matrix <- as.data.frame(combine[, 1:(d+1)])
+## Test 3: catch "binary" model with non-binary data:
 
-  #Reverse the earlier transposition of the observations:
-  Y_in <- combine[, (d+2):ncol(combine)]%>%
-    t() %>%
-    as.data.frame()
+test_that("binary family rejects non-binary data", {
+  Y <- matrix(rnorm(20), 5, 4)
+  colnames(Y) <- paste0("V", 1:4)
 
-  Y_in <- as.data.frame(sapply(Y_in, as.numeric))
+  expect_error(
+    irt_m(Y, d = 1, family = "binary"),
+    "requires Y_in values in \\{0, 1\\}"
+  )
+})
 
-  ## Take the question names and
-  ## convert to column names
+## Test 4: Auto-detects continuous data
 
-  question <- combine[,1] %>%
-    as.data.frame()
-  colnames(Y_in) <- question[,1]
-  rm(combine)
-  rm(question)
+test_that("family inference works for continuous data", {
+  Y <- matrix(rnorm(20), 5, 4)
+  colnames(Y) <- paste0("V", 1:4)
 
-  #Run IRT-M
-  d=6
-  irt <- irt_m(Y_in = Y_in, d = d, M_matrix = M_matrix, nsamp = 100, nburn=100, thin=1)
+  expect_no_error(
+    irt_m(Y, d = 1, nburn = 5, nsamp = 5)
+  )
+})
 
-  expect_type(irt, "list")
-  expect_equal(length(irt), 5)
-}) ## closes the test_that() call
+## Rejects data with NAs:
+
+test_that("missing data is rejected", {
+  Y <- matrix(c(1, 0, NA, 1), 2, 2)
+
+  expect_error(
+    irt_m(Y, d = 1),
+    "does not support missing values"
+  )
+})

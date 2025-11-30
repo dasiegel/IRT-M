@@ -88,9 +88,7 @@
 
 irt_m <- function(Y_in, d, M_matrix = NULL,
                   family = NULL,
-                  nburn = 1000,
-                  nsamp = 1000,
-                  thin = 1,
+                  nburn = 1000, nsamp = 1000, thin = 1,
                   learn_loadings = FALSE) {
 
   ## 1. Coerce and validate Y --------------------------------------------------
@@ -104,10 +102,9 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
   N <- nrow(Y)
   K <- ncol(Y)
 
-  # Require column names if there's a M-Matrix
-
+  # Column names are required *only* when M_matrix is supplied
   if (!is.null(M_matrix) && is.null(colnames(Y))) {
-    stop("Y_in must have column names when M_matrix is supplied.")
+    stop("When M_matrix is supplied, Y_in must have column names matching M_matrix[,1].")
   }
 
   # No missing values allowed
@@ -146,11 +143,11 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
   Yfake       <- NULL
   M_array     <- NULL  # 3D constraint array, if used
 
-  ## 4. If M_matrix is supplied, validate and construct M + anchors ------------
+  ## 4. If M_matrix is supplied, validate and construct M ----------------------
 
   if (!is.null(M_matrix)) {
 
-    # Coerce to data.frame to avoid factor quirks
+    # Coerce to data.frame to avoid factor weirdness
     M_df <- as.data.frame(M_matrix, stringsAsFactors = FALSE)
 
     # Check dimensions: first col is item ID, next d cols are constraints
@@ -191,22 +188,32 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
       stop("Internal error: constructed M array does not match number of items.")
     }
 
-    # Generate synthetic anchor responses + fixed thetas
-    # The '5' here is the usual extreme value used by IRT-M; arbitrary but conventional
-    l2          <- pair_gen_anchors(M_array, 5)
-    Yfake       <- l2[[1]]
-    theta_fake  <- l2[[2]]
+    ## 4a. Anchors: only for binary family ------------------------------------
 
-    # Ensure Yfake has same number of items and named columns
-    if (ncol(Yfake) != K) {
-      stop("pair_gen_anchors() returned anchors with incorrect number of items.")
+    if (family == "binary") {
+      # Generate synthetic anchor responses + fixed thetas
+      # The '5' here is the usual extreme value used by IRT-M; arbitrary but conventional
+      l2         <- pair_gen_anchors(M_array, 5)
+      Yfake      <- l2[[1]]
+      theta_fake <- l2[[2]]
+
+      # Ensure Yfake has same number of items and named columns
+      if (ncol(Yfake) != K) {
+        stop("pair_gen_anchors() returned anchors with incorrect number of items.")
+      }
+      colnames(Yfake) <- colnames(Y)
+
+      # Stack anchors above real data for the sampler
+      Y_all       <- rbind(Yfake, Y)
+      d_which_fix <- seq_len(nrow(Yfake))
+      d_theta_fix <- theta_fake
+
+    } else {
+      # Continuous family: NO anchors
+      Y_all       <- Y
+      d_which_fix <- NULL
+      d_theta_fix <- NULL
     }
-    colnames(Yfake) <- colnames(Y)
-
-    # Stack anchors above real data for the sampler
-    Y_all       <- rbind(Yfake, Y)
-    d_which_fix <- seq_len(nrow(Yfake))
-    d_theta_fix <- theta_fake
 
   } else {
     # No constraints: no anchors, just pass observed data
@@ -220,15 +227,14 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
          "This should not happen. Please report this bug with a reproducible example.")
   }
 
-  ## 5. Decide what covariance structure to learn ------------------------------
+  ## 5. Decide what covariance structure to learn
 
   # Default: learn Sigma (latent trait covariance).
   # If learn_loadings=TRUE, learn Omega instead.
-
   learn_Sigma <- !learn_loadings
   learn_Omega <-  learn_loadings
 
-  ## 6. Call core sampler via family-dispatch wrapper --------------------------
+  ## 6. Sampler via family-dispatch wrapper --------------------------
 
   irt <- M_constrained_irt_family(
     Y_all,

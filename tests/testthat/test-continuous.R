@@ -1,3 +1,7 @@
+library(testthat)
+library(IRTM)
+
+
 test_that("M_constrained_irt_continuous returns correctly shaped output", {
   skip_on_cran()  # keep CRAN checks fast and safe
 
@@ -75,4 +79,131 @@ test_that("continuous IRT-M runs without error", {
     irt_m(Y, d = 1, M_matrix = M_mat, family = "continuous",
           nburn = 10, nsamp = 10, thin = 1)
   )
+})
+
+
+
+test_that("continuous IRT-M with M-matrix generates and removes anchors", {
+  set.seed(456)
+  N <- 30
+  K <- 4
+  d <- 2
+
+  Y <- matrix(rnorm(N*K), N, K)
+  colnames(Y) <- paste0("V", 1:K)
+
+  M_mat <- data.frame(
+    item = paste0("V", 1:K),
+    dim1 = c(1, -1, 1, -1),
+    dim2 = c(1, 1, -1, -1)
+  )
+
+  fit <- irt_m(Y, d = d, M_matrix = M_mat, family = "continuous",
+               nburn = 20, nsamp = 20, thin = 1)
+
+  # Check dimensions (anchors should be removed)
+  expect_equal(dim(fit$theta), c(N, d, 20))
+  expect_equal(dim(fit$lambda), c(K, d, 20))
+
+  # Check no NAs
+  expect_false(anyNA(fit$theta))
+  expect_false(anyNA(fit$lambda))
+  expect_false(anyNA(fit$b))
+})
+
+test_that("continuous IRT-M handles heterogeneous scales", {
+  set.seed(789)
+  N <- 25
+
+  Y <- cbind(
+    large_scale = rnorm(N, mean=1e6, sd=2e5),
+    small_scale = rnorm(N, mean=0.5, sd=0.2)
+  )
+
+  M_mat <- data.frame(
+    item = c("large_scale", "small_scale"),
+    dim1 = c(1, 1)
+  )
+
+  expect_no_error(
+    fit <- irt_m(Y, d = 1, M_matrix = M_mat, family = "continuous",
+                 nburn = 10, nsamp = 10)
+  )
+
+  expect_equal(nrow(fit$theta), N)
+})
+
+test_that("continuous auto-detection works", {
+  set.seed(101)
+  Y <- matrix(rnorm(20*3), 20, 3)
+  colnames(Y) <- paste0("X", 1:3)
+
+  M_mat <- data.frame(
+    item = paste0("X", 1:3),
+    dim1 = c(1, -1, 1)
+  )
+
+  # Should auto-detect continuous
+  fit <- irt_m(Y, d = 1, M_matrix = M_mat, nburn = 10, nsamp = 10)
+
+  expect_equal(dim(fit$theta)[1], 20)
+})
+
+test_that("continuous rejects binary data with error", {
+  Y <- matrix(c(0,1,1,0,1,0), 3, 2)
+  colnames(Y) <- c("A", "B")
+
+  M_mat <- data.frame(item = c("A", "B"), dim1 = c(1, 1))
+
+  expect_error(
+    irt_m(Y, d = 1, M_matrix = M_mat, family = "continuous"),
+    "binary.*continuous"
+  )
+})
+
+test_that("continuous without M-matrix works (no anchors)", {
+  set.seed(202)
+  Y <- matrix(rnorm(25*4), 25, 4)
+  colnames(Y) <- paste0("item", 1:4)
+
+  fit <- irt_m(Y, d = 2, M_matrix = NULL, family = "continuous",
+               nburn = 10, nsamp = 10)
+
+  expect_equal(dim(fit$theta)[1], 25)
+  expect_false(anyNA(fit$theta))
+})
+
+test_that("anchor_quantiles parameter works", {
+  set.seed(303)
+  Y <- matrix(rnorm(20*3), 20, 3)
+  colnames(Y) <- paste0("V", 1:3)
+
+  M_mat <- data.frame(
+    item = paste0("V", 1:3),
+    dim1 = c(1, -1, 1)
+  )
+
+  # Should accept custom quantiles
+  expect_no_error(
+    fit <- irt_m(Y, d = 1, M_matrix = M_mat, family = "continuous",
+                 nburn = 10, nsamp = 10,
+                 anchor_quantiles = c(0.01, 0.99))
+  )
+})
+
+test_that("binary family still works correctly", {
+  set.seed(404)
+  Y <- matrix(rbinom(30*5, 1, 0.5), 30, 5)
+  colnames(Y) <- paste0("Q", 1:5)
+
+  M_mat <- data.frame(
+    item = paste0("Q", 1:5),
+    dim1 = rep(c(1, -1), length.out=5)
+  )
+
+  fit <- irt_m(Y, d = 1, M_matrix = M_mat, family = "binary",
+               nburn = 10, nsamp = 10)
+
+  expect_equal(dim(fit$theta)[1], 30)
+  expect_false(anyNA(fit$theta))
 })

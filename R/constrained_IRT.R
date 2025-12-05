@@ -228,9 +228,14 @@ M_constrained_irt_continuous <- function(Y, d, M = NULL, theta_fix = NULL, which
 #' @export
 M_constrained_irt_family <- function(Y, d,
                                      family = c("binary", "continuous"),
-                                     M = NULL, theta_fix = NULL, which_fix = NULL,
-                                     nburn = 1000, nsamp = 1000, thin = 10,
-                                     learn_Sigma = TRUE, learn_Omega = FALSE,
+                                     M = NULL,
+                                     theta_fix = NULL,
+                                     which_fix = NULL,
+                                     nburn = 1000,
+                                     nsamp = 1000,
+                                     thin = 10,
+                                     learn_Sigma = TRUE,
+                                     learn_Omega = FALSE,
                                      hyperparameters = list(),
                                      display_progress = TRUE){
 
@@ -244,9 +249,12 @@ M_constrained_irt_family <- function(Y, d,
                       hyperparameters = hyperparameters,
                       display_progress = display_progress)
   } else {
-    M_constrained_irt_continuous(Y = Y, d = d, M = M,
-                                 theta_fix = theta_fix, which_fix = which_fix,
-                                 nburn = nburn, nsamp = nsamp, thin = thin,
+    M_constrained_irt_continuous(Y = Y, d = d,
+                                 M = M,
+                                 theta_fix = theta_fix,
+                                 which_fix = which_fix,
+                                 nburn = nburn,
+                                 nsamp = nsamp, thin = thin,
                                  learn_Sigma = learn_Sigma, learn_Omega = learn_Omega,
                                  hyperparameters = hyperparameters,
                                  display_progress = display_progress)

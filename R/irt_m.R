@@ -19,10 +19,14 @@
 #' - `"continuous"`
 #'
 #' **Anchors.**
+#
 #' When constraints are provided (`M_matrix` not `NULL`), synthetic anchor responses
-#' are generated via `pair_gen_anchors()` to fix the latent trait scale. These anchors
-#' are included during sampling but removed from the returned posterior samples.
-#'
+#' are generated to fix the latent trait scale:
+#' - For `family = "binary"`: Uses `pair_gen_anchors()` to create binary {0,1} anchors
+#' - For `family = "continuous"`: Uses `pair_gen_anchors_continuous_columnwise()` to
+#'   create column-specific scaled anchors
+#' These anchors are included during sampling but removed from the returned posterior samples.
+#' '
 #' **Learning covariance structures.**
 #' If `learn_loadings = FALSE` (default), the sampler learns the covariance matrix
 #' of latent traits (`Sigma`).
@@ -63,6 +67,12 @@
 #' If `TRUE`, learn covariance of item loadings (`Omega`).
 #' These cannot be learned simultaneously.
 #'
+#' @param anchor_quantiles
+#' Numeric vector of length 2 specifying the lower and upper quantiles used to
+#' define extreme anchor values for continuous data. Default: `c(0.001, 0.999)`
+#' places anchors at approximately the 0.1th and 99.9th percentiles. Only used
+#' when `family = "continuous"` and `M_matrix` is provided. Ignored for binary data.
+#'
 #' @return
 #' A list containing posterior draws:
 #' \itemize{
@@ -89,7 +99,8 @@
 irt_m <- function(Y_in, d, M_matrix = NULL,
                   family = NULL,
                   nburn = 1000, nsamp = 1000, thin = 1,
-                  learn_loadings = FALSE) {
+                  learn_loadings = FALSE,
+                  anchor_quantiles = c(0.001, 0.999)) {
 
   ## 1. Coerce and validate Y --------------------------------------------------
 
@@ -125,7 +136,8 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
   }
   family <- match.arg(family, choices = c("binary", "continuous"))
 
-  # Consistency checks between data and family
+  # Catch if user inputs distribution family
+  # inconsistent with data:
   if (family == "binary" && !all(Y %in% c(0, 1))) {
     stop("Binary IRT-M requires Y_in values in {0, 1}. ",
          "Use family='continuous' for continuous outcomes.")
@@ -164,6 +176,7 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
     }
 
     # Reorder M_matrix rows to align with colnames(Y)
+    # ensures alignment downstream:
     ord <- match(colnames(Y), item_ids)
     if (anyNA(ord)) {
       stop("Some column names of Y_in are not found in M_matrix[,1]. ",
@@ -184,11 +197,11 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
     }
 
     # Sanity check dimensions
-    if (dim(M_array)[3] != K) {
+    if (dim(M_array)[3] != as.integer(K)){
       stop("Internal error: constructed M array does not match number of items.")
     }
 
-    ## 4a. Anchors: only for binary family ------------------------------------
+    ## 4a. Anchors: binary and continuous
 
     if (family == "binary") {
       # Generate synthetic anchor responses + fixed thetas
@@ -208,18 +221,39 @@ irt_m <- function(Y_in, d, M_matrix = NULL,
       d_which_fix <- seq_len(nrow(Yfake))
       d_theta_fix <- theta_fake
 
-    } else {
-      # Continuous family: NO anchors
-      Y_all       <- Y
-      d_which_fix <- NULL
-      d_theta_fix <- NULL
-    }
+    } else { #must be continuous, given dist family validation above
+      # Continuous family: Generate column-wise scaled anchors
+      # Uses pair_gen_anchors() to create structural template based on M-matrix,
+      # then scales each column to match that item's observed distribution
 
-  } else {
-    # No constraints: no anchors, just pass observed data
+      l2 <- pair_gen_anchors_continuous_columnwise(
+        M = M_array,
+        Y_data = Y,
+        extreme_multiplier = 2.5,
+        use_quantiles = TRUE,
+        lower_quantile = anchor_quantiles[1], # passed parameter
+        upper_quantile = anchor_quantiles[2]
+      )
+
+      Yfake      <- l2[[1]]
+      theta_fake <- l2[[2]]
+
+      # Ensure Yfake has correct dimensions and column names
+      if (ncol(Yfake) != K) {
+        stop("pair_gen_anchors_continuous_columnwise() returned anchors with incorrect number of items.")
+      }
+      colnames(Yfake) <- colnames(Y)
+
+      # Stack anchors above real data for the sampler
+      Y_all       <- rbind(Yfake, Y)
+      d_which_fix <- seq_len(nrow(Yfake))
+      d_theta_fix <- theta_fake
+    } #end continuous anchors call
+  }else {
+    # No constraints: no anchors &  pass observed data
     Y_all   <- Y
     M_array <- NULL
-  }
+  } #last else: no Y_fake anchors
 
   # Final sanity check before passing to C++ sampler
   if (anyNA(Y_all)) {

@@ -31,7 +31,7 @@ arma::rowvec negSubRow(arma::rowvec x, int i){
 
 
 /*
- * rtnorm_gibbs returns a sample of size n from the specificed truncated Gaussian distribution.
+ * rtnorm_gibbs returns a sample of size n from the specified truncated Gaussian distribution.
  * n: integer number of samples to take
  * mu: mean of distribution
  * sigma: standard deviation of distribution

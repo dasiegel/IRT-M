@@ -38,65 +38,76 @@ irt_m = function(Y_in, d, M_matrix=NULL,
                  nburn=1000, nsamp=1000, thin=1,
                  learn_loadings=FALSE){
 
-  d_which_fix = NULL
-  d_theta_fix = NULL
+  Y_in <- as.matrix(Y_in)
+  if (is.null(colnames(Y_in))) stop("Y_in must have column names.")
+  N <- nrow(Y_in); K <- ncol(Y_in)
+
+  # Defaults for no-constraint path
+  M <- array(0, c(d, d, K))
+  for (i in 1:K) M[,,i] <- diag(d) * 2
+  Yfake <- NULL
+  theta_fake <- NULL
+  anchors_count <- 0
+  d_which_fix <- integer(0)
+  d_theta_fix <- matrix(numeric(0), 0, d)
+  Y_all <- Y_in
+
   if (!is.null(M_matrix)) {
-      #First check to ensure that the K column headers in the input data Y_in
-      #match the elements in the first column of the constraint matrix M_matrix
-      #exit if not
-      if(length(setdiff(colnames(Y_in), M_matrix[,1]))!=0) {
-        stop("Item labels do not match. Please address inconsistency before running again.")
-      }
-      #Next check to ensure that M has d+1 dimensions if not NULL.
-      if (!is.null(M_matrix) && dim(M_matrix)[2]!=(d+1)) {
-        stop("The number of latent dimensions does not match the number coded in M_matrix.")
-      }
+    M_matrix <- as.matrix(M_matrix)
+    ids <- M_matrix[,1]
+    coln <- colnames(Y_in)
+
+    #Check to ensure that the K column headers in the input data Y_in
+    #match the elements in the first column of the constraint matrix M_matrix
+    #exit if not
+    if (!setequal(coln, ids)) {
+      stop("Item labels do not match between Y_in colnames and M_matrix first column. Please address the inconsistency before running again.")
+    }
+
+    M_matrix <- M_matrix[match(coln, ids), , drop=FALSE]
+
+    #Check to ensure that M has d+1 dimensions if not NULL.
+    if (ncol(M_matrix) != (d + 1)) {
+      stop("M_matrix must have d+1 columns.")
+    }
 
     #Create array of M-matrices
-    M <- array(NA, c(d, d, ncol(Y_in)))
+    M <- array(NA_real_, dim=c(d, d, K))
     #if only one dimension, force a matrix to be constructed
-    if (d==1) {
-      for (i in 1:ncol(Y_in)) {
-        M[,,i] <- matrix(M_matrix[i,2], nrow = 1, ncol = 1)
-      }
-    }
-    else {
-      codings <- 2:(d+1)
-      for (i in 1:ncol(Y_in)) {
-        M[,,i] <- diag(M_matrix[i,codings])
-      }
+    if (d == 1) {
+      for (i in 1:K) M[,,i] <- matrix(M_matrix[i, 2], 1, 1)
+    } else {
+      cod <- 2:(d + 1)
+      for (i in 1:K) M[,,i] <- diag(M_matrix[i, cod])
     }
 
-    #Check dimensions of created objects and exit if incorrect for sampler
-    if(dim(Y_in)[2] != dim(M)[3]) {
-      stop("Dimensions of Data and Constraint do not match.")
-    }
-    if(dim(M)[1] != d || dim(M)[2]!=d) {
-      stop("M is not dxd; check processing")
+    # Sanity checks
+    if (dim(M)[3] != K || dim(M)[1] != d || dim(M)[2] != d) {
+      stop("Constraint array M must be d x d x K.")
     }
 
     #First, compute synthetic anchor points using IRT-M's built-in function
     #The value of 5 is chosen to be an extreme value, but 5 is arbitrary
-    l2 <- pair_gen_anchors(M,5)
+    l2 <- pair_gen_anchors(M, 5)
     Yfake <- l2[[1]]
-    colnames(Yfake) <- names(Y_in)
     theta_fake <- l2[[2]]
+    colnames(Yfake) <- coln
+
     #Second, create a data matrix for the sampler that contains the fake data as well.
-    Y_all = as.matrix(rbind(Yfake, Y_in))
-    d_which_fix <- 1:nrow(Yfake)
-    d_theta_fix <- theta_fake
+    Y_all <- rbind(Yfake, Y_in)
+    anchors_count <- nrow(Yfake)
+
+    d_which_fix <- seq_len(anchors_count)
+    d_theta_fix <- as.matrix(theta_fake)
+    if (ncol(d_theta_fix) != d) stop("theta_fake must have d columns.")
   }
 
   #Run constrained_IRT
   #Default to learning factor covariance unless user sets learn_loadings to TRUE.
-  #Note: these ae mutually exclusive: one can't learn both.
+  #Note: these are mutually exclusive: one can't learn both.
   #Setting both learn_Sigma and learn_Omega to TRUE defaults to learning factor covariance.
-  learnS <- TRUE
-  learnO <- FALSE
-  if (learn_loadings==TRUE) {
-    learnS <- FALSE
-    learnO <- TRUE
-  }
+  learnS <- !learn_loadings
+  learnO <- learn_loadings
 
   #Run IRT-M
   irt <- M_constrained_irt(Y_all,
@@ -109,10 +120,10 @@ irt_m = function(Y_in, d, M_matrix=NULL,
                            thin=thin,
                            learn_Sigma=learnS, learn_Omega=learnO)
 
-  if (!is.null(Yfake)) {
-    #Remove anchors before returning results
-    anchors_end <- dim(Yfake)[1]
-    irt$theta <- irt$theta[-(1:anchors_end), , , drop=FALSE]
+  #remove anchors
+  if (!is.null(Yfake) && anchors_count > 0) {
+    irt$theta <- irt$theta[-seq_len(anchors_count), , , drop=FALSE]
   }
+
   return(irt)
 }

@@ -18,6 +18,8 @@
 #'   \item{theta}{An array of dimension (N x d x nsamp/thin) containing posterior samples of respondent latent trait values.}
 #'   \item{Sigma}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of latent traits (only if learn_Sigma=TRUE).}
 #'   \item{Omega}{An array of dimension (d x d x nsamp/thin) containing posterior samples of the covariance matrix of item loadings (only if learn_Omega=TRUE).}
+#'   \item{hyperparameters}{A list of the four hyperparameters of the model: S0, O0, nu0, mu)}
+#'   \item{constraints}{A list of lower and upper bounds for each item-dimension pair}
 #' @import RcppProgress
 #' @importFrom tmvtnorm rtmvnorm
 #' @importFrom truncnorm rtruncnorm
@@ -45,10 +47,10 @@ M_constrained_irt = function(Y, d, M=NULL, theta_fix=NULL, which_fix=NULL,
   else
     S0 = hyperparameters[['S0']]
 
-  if(is.null(hyperparameters[['Omega']]))
-    Omega = diag(d) * 25 # same as pscl default
+  if(is.null(hyperparameters[['O0']]))
+    O0 = diag(d) * 25 # same as pscl default
   else
-    Omega = hyperparameters[['O0']]
+    O0 = hyperparameters[['O0']]
 
   if(is.null(hyperparameters[['nu0']]))
     nu0 = d
@@ -60,52 +62,67 @@ M_constrained_irt = function(Y, d, M=NULL, theta_fix=NULL, which_fix=NULL,
   else
     mu = hyperparameters[['mu']]
 
+  #This is here in case one wants to pass a NULL M directly to M_constrained_irt rather than going through irt_m.
   if(is.null(M)){
     M = array(NA, c(d, d, K))
     for(k in 1:K)
-      M[,,k] = diag(d)
+      M[,,k] = diag(d)*2
   }
 
-  lbs = matrix(NA, K, d)
-  ubs = matrix(NA, K, d)
+  lbs = matrix(NA_real_, K, d)
+  ubs = matrix(NA_real_, K, d)
   for (k in 1:K){
-    for (d in 1:d){
-      if(is.na(M[d,d,k])){
-        lbs[k, d] = -Inf
-        ubs[k, d] = Inf
-      }else if(M[d,d,k] == 0){
-        lbs[k, d] = 0
-        ubs[k, d] = 0
-      }else if (M[d,d,k] == 1){
-        lbs[k, d] = 0
-        ubs[k, d] = Inf
-      }else if (M[d,d,k] == -1){
-        lbs[k, d] = -Inf
-        ubs[k, d] = 0
+    for (j in 1:d){
+      val <- M[j,j,k]
+      if(is.na(val)){
+        lbs[k, j] = -Inf
+        ubs[k, j] = Inf
+      }else if(val == 0){
+        lbs[k, j] = 0
+        ubs[k, j] = 0
+      }else if (val == 1){
+        lbs[k, j] = 0
+        ubs[k, j] = Inf
+      }else if (val == -1){
+        lbs[k, j] = -Inf
+        ubs[k, j] = 0
       }else{
-        lbs[k, d] = -Inf
-        ubs[k, d] = Inf
+        lbs[k, j] = -Inf
+        ubs[k, j] = Inf
       }
     }
   }
 
   ## initialize
-  if(is.null(theta_fix)){
-    ind = numeric(0)
-    theta_fix = numeric(0)
-  }else{
-    if(is.null(which_fix))
-      ind = 1:length(theta_fix)
-    else
-      ind = which_fix
+  if (is.null(theta_fix)) {
+    ind <- integer(0)
+    fixed_vals <- matrix(numeric(0), 0, d)
+  } else {
+    theta_fix <- as.matrix(theta_fix)
+    if (ncol(theta_fix) != d) stop("theta_fix must have d columns.")
+    ind <- if (is.null(which_fix)) seq_len(nrow(theta_fix)) else which_fix
+    fixed_vals <- theta_fix
   }
-  fixed_vals = matrix(unlist(theta_fix), length(theta_fix), d, byrow=T)
+
+  #Corrected [[check]]
+  #   if(is.null(theta_fix)){
+  #   ind = numeric(0)
+  #   theta_fix = numeric(0)
+  # }else{
+  #   if(is.null(which_fix))
+  #     ind = 1:length(theta_fix)
+  #   else
+  #     ind = which_fix
+  # }
+  # fixed_vals = matrix(unlist(theta_fix), length(theta_fix), d, byrow=T)
 
   if(display_progress)
     message('Sampling...')
   res = sample_constrained_irt(Y, d, nu0, S0, lbs, ubs, ind, fixed_vals,
                                nburn, nsamp, thin, learn_Sigma, learn_Omega, display_progress)
 
+  res$hyperparameters <- list(S0=S0, O0=O0, nu0=nu0, mu=mu)
+  res$constraints <- list(lbs=lbs, ubs=ubs)
   return(res)
 }
 

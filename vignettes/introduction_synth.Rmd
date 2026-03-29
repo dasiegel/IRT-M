@@ -15,11 +15,12 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+## Packages
 
 Packages that we will use for data prep, IRT-M estimation, and data visualization:
 ```{r packages, eval=T, echo=T, message=F, warning = FALSE}
 ## Data prep:
-library(tidyverse) # version: tidyverse_2.0.0 
+library(tidyverse) # version: tidyverse_2.0.0
 library(dplyr) #version: dplyr_1.1.4
 library(stats) # version: stats4
 library(fastDummies) # version: fastDummies_1.7.3
@@ -29,14 +30,14 @@ library(reshape2) #version: reshape2_1.4.4
 #devtools::install_github("dasiegel/IRT-M")
 library(IRTM) #version 1.00
 
-## Results visualization: 
+## Results visualization:
 library(ggplot2)  # version: ggplot2_3.4.4
-library(ggridges) #version: ggridges_0.5.6 
+library(ggridges) #version: ggridges_0.5.6
 library(RColorBrewer) #version: RColorBrewer_1.1-3
-library(ggrepel) # version: ggrepel_0.9.5 
+library(ggrepel) # version: ggrepel_0.9.5
 ```
 
-In this document, we walk through using the IRT-M package. 
+In this document, we walk through using the IRT-M package.
 
 The IRT-M framework may be used for a wide variety of cases. This vignette focuses on a single, hypothetical, use case, in which a research team seeks empirical support for a hypothesis: in this case, the threat-response hypothesis that anti-immigration attitudes in Europe are associated with perceptions of cultural, economic, and security threats. We illustrate data preparation, IRT-M estimation, visualization, and analysis with a small synthetic dataset (N=3000) based on the Eurobarometer 94.3 wave. The real data can be accessed via: \url{https://search.gesis.org/research_data/ZA7780?doi=10.4232/1.14076}.
 
@@ -98,14 +99,14 @@ For this vignette, we are interested whether respondents to the 2020-2021 Euroba
 
 Thus, we expand the levels of the question prompt to become four separate yes/no questions:
 
-+ qa1a_4_1. Situation of personal job: very good. 
++ qa1a_4_1. Situation of personal job: very good.
 + qa1a_4_2 Situation of personal job: rather good
 + qa1a_4_3 Situation of personal job: rather bad
-+ qa1a_4_4. Situation of personal job: very bad  
++ qa1a_4_4. Situation of personal job: very bad
 
 Note that if you had followed our advice above, these items would have already been separated for you and would occur as rows of the spreadsheet you were using to specify your `M_matrix`. Also note that we do not have an omitted category in this coding. That is deliberate: even in a yes/no question, it is possible that responses of "yes" implicate latent theoretical dimensions differently from responses of "no". For example, a "yes" might suggest a particular action or thought process, but many actions or thought processes could be responsible for a "no".
 
-Once the `M_matrix` contains a column of item codes for binary items, we can specify our theoretical loadings for those items. In the `M_matrix`, we add a `1` to the column for the Economic Threat dimension for qa1a_4_3 and qa1a_4_4. Substantively, this means that responses to the qa1a_4 with a value in the data of "3” or “4" are coded as individual respondents who likely would score high on the “economic threat” dimension.  We can also code the inverse and give qa1a_4_1 and qa1a_4_2 the value of `-1` in the `M_matrix` because we expect that survey respondents who answer that they feel that their personal job situation is “very good” or “rather good” likely would not score highly on economic threat. 
+Once the `M_matrix` contains a column of item codes for binary items, we can specify our theoretical loadings for those items. In the `M_matrix`, we add a `1` to the column for the Economic Threat dimension for qa1a_4_3 and qa1a_4_4. Substantively, this means that responses to the qa1a_4 with a value in the data of "3” or “4" are coded as individual respondents who likely would score high on the “economic threat” dimension.  We can also code the inverse and give qa1a_4_1 and qa1a_4_2 the value of `-1` in the `M_matrix` because we expect that survey respondents who answer that they feel that their personal job situation is “very good” or “rather good” likely would not score highly on economic threat.
 
 We repeat that process for each of the items that we think relate in any fashion (positively, negatively, or in an unclear way) to any of our underlying theoretical dimensions. Note that an item may relate in some way to no dimensions, one dimension, or more than one dimension, and that these relationships may be dependent or independent. Also note that if you think an item may relate but are not sure how exactly, the safest option is an `NA`.
 
@@ -119,7 +120,7 @@ For our vignette, we thus end up with a `K x (1+d)` matrix, where `K` is the num
 load('./vdata/mcodes.rda')
 
 ## Only keep M-Codes with loadings or outcomes:
-MCodes$encoding <- rowSums(abs(MCodes[,4:9])) 
+MCodes$encoding <- rowSums(abs(MCodes[,4:9]))
 MCodes <- MCodes[which(MCodes$encoding > 0),]
 
 ```
@@ -132,17 +133,17 @@ The last step before we can start our analysis is to produce the `Y_in` and `M_m
 ## Produce a K-coded questions x R-responses data frame:
 
 d <- 6 #number of coded dimensions
-mcolumns <- c("QMap", "D1-Culture threat", 
-              "D2-ReligionThreat", 
+mcolumns <- c("QMap", "D1-Culture threat",
+              "D2-ReligionThreat",
               "D3-Economic Threat",
               "D4-HealthThreat",
               "O1-OutcomeSupportImmigration", "O2-OutcomeSupportEU")
 
-combine <- MCodes[,mcolumns] %>% ## question codes and loadings 
+combine <- MCodes[,mcolumns] %>% ## question codes and loadings
     inner_join(
-        Y %>% 
-        t() %>% 
-        as.data.frame(stringsAsFactors = FALSE) %>% 
+        Y %>%
+        t() %>%
+        as.data.frame(stringsAsFactors = FALSE) %>%
         type_convert() %>%
         rownames_to_column(var = "question"),
         by = c("QMap" = "question"  )
@@ -157,11 +158,11 @@ Y_in <- combine[, (d+2):ncol(combine)]%>%
 
 Y_in <- as.data.frame(sapply(Y_in, as.numeric))
 
-## Take the question names and 
+## Take the question names and
 ## convert to column names
 
 question <- combine[,1] %>%
-    as.data.frame() 
+    as.data.frame()
 colnames(Y_in) <- question[,1]
 rm(combine)
 rm(question)
@@ -245,16 +246,16 @@ theta_corr
 
 ## Visualizations
 
-At this point, the analyst will likely want to visualize distributions over each latent dimension, possibly subset by other variables. The IRT-M package makes this easy to do with the function `irt_vis()`. This function takes as input the number of latent dimensions, `d`, and a data frame (`Y_out`) constructed above, containing the average thetas plus any additional variables supplied by the analyst. It returns a ridge plot illustrating the population distribution over each latent dimension.  The function also takes two optional arguments. The first, `sub_name`, takes the name of another variable in `Y_out` and provides subplots for each level in the variable `sub_name`. The second, `out_file`, takes a file name; if one is provided, the function writes the plot to a file with that name and places it in the working directory. Both default to `NULL` if not provided. 
+At this point, the analyst will likely want to visualize distributions over each latent dimension, possibly subset by other variables. The IRT-M package makes this easy to do with the function `irt_vis()`. This function takes as input the number of latent dimensions, `d`, and a data frame (`Y_out`) constructed above, containing the average thetas plus any additional variables supplied by the analyst. It returns a ridge plot illustrating the population distribution over each latent dimension.  The function also takes two optional arguments. The first, `sub_name`, takes the name of another variable in `Y_out` and provides subplots for each level in the variable `sub_name`. The second, `out_file`, takes a file name; if one is provided, the function writes the plot to a file with that name and places it in the working directory. Both default to `NULL` if not provided.
 
 The following code presents examples of visualizations for the latent dimension estimations. We focus on the subgroup distribution visualizations presented in Morucci et al. 2024. Earlier, we loaded packages to assist in visualization. `irt_vis()` makes use of a  `melt()` call from the  `dplyr` library, which converts the data from wide to long format. Treating each `theta` identifier as a factor makes it easy to use the `ggridges` library to visualize ridge plots for each latent dimension. Before running `irt_vis()`, we rename the columns for the latent dimensions of `thetas` (its first `d` columns), since we are plotting the constrained model only. We first call `irt_vis()` without using a `sub_name` variable to produce aggregate distributions. We do pass a name for an output file.
 
 ```{r viz-thetas, eval=T, echo=T, echo=T, message=F, warning = FALSE}
-library(ggplot2) #version: ggplot2_3.4.4 
-library(ggridges) #version: ggridges_0.5.6 
+library(ggplot2) #version: ggplot2_3.4.4
+library(ggridges) #version: ggridges_0.5.6
 library(RColorBrewer) #version: RColorBrewer_1.1-3
 library(dplyr) #version: dplyr_1.1.4
-library(ggrepel) # version: ggrepel_0.9.5 
+library(ggrepel) # version: ggrepel_0.9.5
 library(reshape2) #version: reshape2_1.4.4
 
 
@@ -295,7 +296,7 @@ ggmt <- irt_vis(d = d, T_out = thetas, sub_name = "mediatrust", out_file = "thet
 
 ## Lambda
 
-After estimating and exploring the theta distributions, one might turn to questions of validation. The IRT-M model produces output that can help with this task: the `lambda` array records how closely associated each item is to each latent dimension, including any outcome latent dimensions. 
+After estimating and exploring the theta distributions, one might turn to questions of validation. The IRT-M model produces output that can help with this task: the `lambda` array records how closely associated each item is to each latent dimension, including any outcome latent dimensions.
 
 IRT-M comes with a utility, `get_lambdas()`, to make using the information in that array a bit easier. It takes three inputs: the `lambda` array from the IRT model, a vector of item names, and a vector of latent dimension names. The utility returns a list with two objects, both of which are data frames. The first, `av_lams`,  contains averages (across samples) of item discrimination parameters. The second, `high_lams`, is a `K x d` matrix, with each column an ordered list of the items (by name) that most strongly load on each latent dimension. The utility also accepts an optional argument, `item_elab`, which is a vector of item descriptions. If that argument is not null (its default), then the utility appends those descriptions to the item names in its output.
 

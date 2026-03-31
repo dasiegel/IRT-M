@@ -45,10 +45,10 @@ M_constrained_irt = function(Y, d, M=NULL, theta_fix=NULL, which_fix=NULL,
   else
     S0 = hyperparameters[['S0']]
 
-  if(is.null(hyperparameters[['Omega']]))
-    Omega = diag(d) * 25 # same as pscl default
+  if(is.null(hyperparameters[['O0']]))
+    O0 = diag(d) * 25 # same as pscl default
   else
-    Omega = hyperparameters[['O0']]
+    O0 = hyperparameters[['O0']]
 
   if(is.null(hyperparameters[['nu0']]))
     nu0 = d

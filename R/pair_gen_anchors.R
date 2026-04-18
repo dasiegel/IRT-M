@@ -137,18 +137,18 @@ pair_gen_anchors = function(M,A){
                                    (M[l, l, k] == -1 && M[j, j, k] != 1), 0, NA)
 
           #NY
-          Yfake[i+1, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
-                                   (M[l, l, k] == 1 && M[j, j, k] != -1), 1, NA)
+          Yfake[i+1, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != -1) ||
+                                   (M[l, l, k] == 1 && M[j, j, k] != 1), 1, NA)
           if(is.na(Yfake[i+1, k]))
-            Yfake[i+1, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
-                                     (M[l, l, k] == -1 && M[j, j, k] != 1), 0, NA)
+            Yfake[i+1, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != 1) ||
+                                     (M[l, l, k] == -1 && M[j, j, k] != -1), 0, NA)
 
           #YN
-          Yfake[i+2, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != -1) ||
-                                   (M[l, l, k] == -1 && M[j, j, k] != 1), 1, NA)
+          Yfake[i+2, k] = ifelse((M[j, j, k] == 1 && M[l, l, k] != 1) ||
+                                   (M[l, l, k] == -1 && M[j, j, k] != -1), 1, NA)
           if(is.na(Yfake[i+2, k]))
-            Yfake[i+2, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||
-                                     (M[l, l, k] == 1 && M[j, j, k] != -1), 0, NA)
+            Yfake[i+2, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != -1) ||
+                                     (M[l, l, k] == 1 && M[j, j, k] != 1), 0, NA)
 
           #NN
           Yfake[i+3, k] = ifelse((M[j, j, k] == -1 && M[l, l, k] != 1) ||

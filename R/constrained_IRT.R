@@ -64,7 +64,10 @@ M_constrained_irt = function(Y, d, M=NULL, theta_fix=NULL, which_fix=NULL,
   if(is.null(M)){
     M = array(NA, c(d, d, K))
     for(k in 1:K)
+      ## 2 used as a signal value unconstrained diagonal entries when M is NULL
+      ## the diag *2 intended to kick into unconstrained mode
       M[,,k] = diag(d)*2
+
   }
 
   lbs = matrix(NA_real_, K, d)

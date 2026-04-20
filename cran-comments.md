@@ -1,13 +1,22 @@
+## Resubmission
+
+This is a maintenance update for IRTM.
+
+Changes in this version:
+- Fixed an anchor-handling issue that could lead to invalid sampler output in some cases.
+- Updated package tests and cleaned package infrastructure.
+- Transferred package maintainership to David Siegel <david.siegel@duke.edu>.
+
+## Test environments
+- local macOS, R version4.4.1 (2024-06-14)
+- devtools::check(cran = TRUE)
+
 ## R CMD check results
+- 0 errors | 0 warnings | 1 note
+- NOTE: unable to verify current time
 
-0 errors | 0 warnings | 1 note
-
-* This is a new release.
-
-## Particularities
-
-The note on this package is asking whether we intend to specify the C++11 dependency.
-This package implements a constrained Bayesian Item Response Theory (IRT) model.
-We use C++ for our sampler for efficiency. 
-C++11 is a widespread backbone of C++, so we've kept that specific version.
-
+## Additional comments
+The current CRAN checks for the previous release show an installation error on r-devel-windows-x86_64,
+while release and oldrel Windows checks are OK.
+This appears to be a forward-compatibility issue in the Rcpp/C++ toolchain on some Windows machines. 
+Since this is a forward issue rather than one introduced by the current update, are submitting the current update and will look into the future compatability issue.

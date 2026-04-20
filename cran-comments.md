@@ -8,7 +8,7 @@ Changes in this version:
 - Transferred package maintainership to David Siegel <david.siegel@duke.edu>.
 
 ## Test environments
-- local macOS, R version4.4.1 (2024-06-14)
+- local macOS, R version 4.4.1 (2024-06-14)
 - devtools::check(cran = TRUE)
 
 ## R CMD check results
@@ -17,6 +17,6 @@ Changes in this version:
 
 ## Additional comments
 The current CRAN checks for the previous release show an installation error on r-devel-windows-x86_64,
-while release and oldrel Windows checks are OK.
-This appears to be a forward-compatibility issue in the Rcpp/C++ toolchain on some Windows machines. 
-Since this is a forward issue rather than one introduced by the current update, are submitting the current update and will look into the future compatability issue.
+while r-release and r-oldrel Windows checks are OK.
+This appears to be a forward-compatibility issue in the Rcpp/C++ toolchain rather than a regression introduced in this update.
+We will investigate this issue in a future update.

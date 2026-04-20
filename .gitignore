@@ -1,12 +1,13 @@
 Meta
 # History files
-.Rhistory
+*.Rhistory
 .Rapp.history
 
 # Session Data files
 .RData
-*.DS_Store
+*DS_Store
 *.*~
+*.Rproj
 
 # User-specific files
 .Ruserdata

@@ -7,7 +7,7 @@ library(testthat)
 
 ## IRT-M estimation:
 #devtools::install_github("dasiegel/IRT-M")
-library(IRTM) #version 1.00
+library(IRTM) #version
 
 test_that("Test Case One: Normal Use", {
 
@@ -47,7 +47,6 @@ test_that("Test Case One: Normal Use", {
       Y %>%
         t() %>%
         as.data.frame(stringsAsFactors = FALSE) %>%
-        type_convert() %>%
         rownames_to_column(var = "question"),
       by = c("QMap" = "question"  )
     )
@@ -72,8 +71,24 @@ test_that("Test Case One: Normal Use", {
 
   #Run IRT-M
   d=6
-  irt <- irt_m(Y_in = Y_in, d = d, M_matrix = M_matrix, nsamp = 100, nburn=100, thin=1)
+  irt <- irt_m(Y_in = Y_in,
+               d = d,
+               M_matrix = M_matrix,
+               nsamp = 100,
+               nburn=100, thin=1)
 
-  expect_type(irt, "list")
-  expect_equal(length(irt), 5)
+  ## Check outputs:
+  expect_type(irt, "list") ## outputs are a list
+
+   ## Verify components:
+  expect_named(
+    irt,
+    c("theta", "lambda", "b",
+      "Sigma", "Omega",
+      "hyperparameters", "constraints")
+  )
+
+  ## Verify expected shape of important results:
+  expect_true(is.array(irt$theta)) #theta is an array
+  expect_true(is.array(irt$lambda)) #lambda is an array
 }) ## closes the test_that() call

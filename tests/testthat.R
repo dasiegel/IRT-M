@@ -7,7 +7,7 @@ library(testthat)
 
 ## IRT-M estimation:
 #devtools::install_github("dasiegel/IRT-M")
-library(IRTM) #version 1.00
+library(IRTM) #version 0.1.2
 
 test_check("IRTM")
 
